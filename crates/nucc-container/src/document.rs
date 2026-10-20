@@ -25,6 +25,16 @@ impl NuccChunkEntry {
     pub fn filepath(&self) -> &str {
         &self.index.filepath
     }
+
+    pub fn is_typed(&self) -> bool {
+        self.index.chunk_type != NuccChunkType::NuccChunkUnknown
+            && self.chunk.chunk_type() == self.index.chunk_type
+            && !self.chunk.is_opaque()
+    }
+
+    pub fn is_opaque(&self) -> bool {
+        self.index.chunk_type == self.chunk.chunk_type() && self.chunk.is_opaque()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

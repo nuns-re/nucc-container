@@ -7,8 +7,8 @@ use super::{NuccChunk, NuccChunkType};
 #[brw(big)]
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct NuccChunkMorphModel {
-    #[br(calc = version)] // write imported version into the field when reading
-    #[bw(ignore)] // do not write this field back out
+    #[br(calc = version)]
+    #[bw(ignore)]
     pub version: u16,
 
     #[brw(pad_after = 2)]
@@ -25,5 +25,9 @@ impl NuccChunk for NuccChunkMorphModel {
 
     fn version(&self) -> u16 {
         self.version
+    }
+
+    fn is_opaque(&self) -> bool {
+        true
     }
 }

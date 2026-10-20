@@ -46,6 +46,10 @@ pub trait NuccChunk: Downcast + fmt::Debug {
         String::new()
     }
 
+    fn is_opaque(&self) -> bool {
+        false
+    }
+
     fn read_boxed(input: &[u8], version: u16) -> NuccChunkReadResult
     where
         Self: Sized + BinRead<Args = (u16,)>,

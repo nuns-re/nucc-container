@@ -7,8 +7,8 @@ use super::{NuccChunk, NuccChunkType};
 #[brw(import(version: u16))]
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct NuccChunkCamera {
-    #[br(calc = version)] // write imported version into the field when reading
-    #[bw(ignore)] // do not write this field back out
+    #[br(calc = version)]
+    #[bw(ignore)]
     pub version: u16,
 
     #[brw(pad_before = 4)]

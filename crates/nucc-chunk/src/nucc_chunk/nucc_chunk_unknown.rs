@@ -18,4 +18,8 @@ impl NuccChunk for NuccChunkUnknown {
     fn version(&self) -> u16 {
         self.version
     }
+
+    fn is_opaque(&self) -> bool {
+        true
+    }
 }

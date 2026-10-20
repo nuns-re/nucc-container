@@ -52,9 +52,16 @@ fn chunks(path: &PathBuf) -> anyhow::Result<()> {
     let document = load(path)?;
     for (index, chunk) in document.chunks.iter().enumerate() {
         println!(
-            "{index:04}  {:<32}  v{:<4}  {}",
+            "{index:04}  {:<32}  v{:<4}  {:<4}  {}",
             chunk.chunk_type(),
             chunk.chunk.version(),
+            if chunk.is_typed() {
+                "typed"
+            } else if chunk.is_opaque() {
+                "opaque"
+            } else {
+                "raw"
+            },
             chunk.chunk_name()
         );
     }
