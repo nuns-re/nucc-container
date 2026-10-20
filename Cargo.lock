@@ -249,6 +249,7 @@ version = "0.1.0"
 dependencies = [
  "binrw",
  "downcast-rs",
+ "nu",
  "nucc-core",
  "thiserror",
 ]
@@ -267,7 +268,6 @@ name = "nucc-container"
 version = "0.1.0"
 dependencies = [
  "indexmap",
- "nu",
  "nucc-chunk",
  "nucc-core",
  "nucc-xfbin",

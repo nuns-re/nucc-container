@@ -7,11 +7,10 @@ publish.workspace = true
 
 [features]
 default = ["nut"]
-nut = ["dep:nu"]
+nut = ["nucc-chunk/nut"]
 
 [dependencies]
 indexmap.workspace = true
-nu = { path = "../../../nu/crates/nu", optional = true }
 nucc-core.workspace = true
 nucc-xfbin.workspace = true
 nucc-chunk.workspace = true

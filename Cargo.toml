@@ -20,6 +20,7 @@ binrw = "0.10"
 clap = { version = "4", features = ["derive"] }
 downcast-rs = "1.2"
 indexmap = "2"
+nu = { path = "../nu/crates/nu" }
 nucc-core = { path = "crates/nucc-core" }
 nucc-xfbin = { path = "crates/nucc-xfbin" }
 nucc-chunk = { path = "crates/nucc-chunk" }

@@ -31,3 +31,11 @@ impl NuccChunk for NuccChunkTexture {
         self.version
     }
 }
+
+#[cfg(feature = "nut")]
+impl NuccChunkTexture {
+    pub fn nut(&self) -> nucc_core::Result<nu::texture::Nut> {
+        nu::texture::Nut::parse(&self.nut_data)
+            .map_err(|error| nucc_core::NuccError::InvalidChunk(format!("NUT: {error}")))
+    }
+}
