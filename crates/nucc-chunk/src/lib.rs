@@ -10,3 +10,6 @@ pub use nucc_chunk::{
     NuccChunkMorphModel, NuccChunkNub, NuccChunkNull, NuccChunkPage, NuccChunkParticle,
     NuccChunkTexture, NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown,
 };
+
+#[cfg(feature = "nus3")]
+pub use nucc_nus3::{Nus3Bank, Nus3Chunk, Nus3Codec, Nus3Tone};

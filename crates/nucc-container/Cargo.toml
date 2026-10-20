@@ -6,10 +6,11 @@ license.workspace = true
 publish.workspace = true
 
 [features]
-default = ["nu"]
+default = ["nu", "nus3"]
 nu = ["nucc-chunk/nu"]
 nut = ["nu"]
 nud = ["nu"]
+nus3 = ["nucc-chunk/nus3"]
 
 [dependencies]
 indexmap.workspace = true

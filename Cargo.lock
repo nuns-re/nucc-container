@@ -251,6 +251,7 @@ dependencies = [
  "downcast-rs",
  "nu",
  "nucc-core",
+ "nucc-nus3",
  "thiserror",
 ]
 
@@ -279,6 +280,13 @@ name = "nucc-core"
 version = "0.1.0"
 dependencies = [
  "thiserror",
+]
+
+[[package]]
+name = "nucc-nus3"
+version = "0.1.0"
+dependencies = [
+ "nucc-core",
 ]
 
 [[package]]

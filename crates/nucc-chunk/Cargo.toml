@@ -6,14 +6,16 @@ license.workspace = true
 publish.workspace = true
 
 [features]
-default = ["nu"]
+default = ["nu", "nus3"]
 nu = ["dep:nu"]
 nut = ["nu"]
 nud = ["nu"]
+nus3 = ["dep:nucc-nus3"]
 
 [dependencies]
 binrw.workspace = true
 downcast-rs.workspace = true
 nu = { workspace = true, optional = true }
 nucc-core.workspace = true
+nucc-nus3 = { workspace = true, optional = true }
 thiserror.workspace = true
