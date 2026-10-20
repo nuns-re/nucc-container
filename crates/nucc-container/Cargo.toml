@@ -5,8 +5,13 @@ edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[features]
+default = ["nut"]
+nut = ["dep:nu"]
+
 [dependencies]
 indexmap.workspace = true
+nu = { path = "../../../nu/crates/nu", optional = true }
 nucc-core.workspace = true
 nucc-xfbin.workspace = true
 nucc-chunk.workspace = true
