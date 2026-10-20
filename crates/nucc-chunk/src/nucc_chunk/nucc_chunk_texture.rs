@@ -32,7 +32,7 @@ impl NuccChunk for NuccChunkTexture {
     }
 }
 
-#[cfg(feature = "nut")]
+#[cfg(feature = "nu")]
 impl NuccChunkTexture {
     pub fn nut(&self) -> nucc_core::Result<nu::texture::Nut> {
         nu::texture::Nut::parse(&self.nut_data)

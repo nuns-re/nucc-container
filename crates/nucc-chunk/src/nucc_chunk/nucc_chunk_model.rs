@@ -43,3 +43,11 @@ impl NuccChunk for NuccChunkModel {
         self.version
     }
 }
+
+#[cfg(feature = "nu")]
+impl NuccChunkModel {
+    pub fn nud(&self) -> nucc_core::Result<nu::model::Nud> {
+        nu::model::Nud::parse(&self.nud_data)
+            .map_err(|error| nucc_core::NuccError::InvalidChunk(format!("NUD: {error}")))
+    }
+}

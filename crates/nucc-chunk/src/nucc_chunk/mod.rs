@@ -13,6 +13,7 @@ pub mod nucc_chunk_lightpoint;
 pub mod nucc_chunk_material;
 pub mod nucc_chunk_model;
 pub mod nucc_chunk_morphmodel;
+pub mod nucc_chunk_nub;
 pub mod nucc_chunk_null;
 pub mod nucc_chunk_page;
 pub mod nucc_chunk_particle;
@@ -41,6 +42,7 @@ pub use nucc_chunk_lightpoint::NuccChunkLightPoint;
 pub use nucc_chunk_material::{MaterialTextureGroup, NuccChunkMaterial};
 pub use nucc_chunk_model::NuccChunkModel;
 pub use nucc_chunk_morphmodel::NuccChunkMorphModel;
+pub use nucc_chunk_nub::NuccChunkNub;
 pub use nucc_chunk_null::NuccChunkNull;
 pub use nucc_chunk_page::NuccChunkPage;
 pub use nucc_chunk_particle::NuccChunkParticle;
@@ -120,6 +122,7 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkLayerSet => NuccChunkLayerSet::read_boxed(&data, version),
             NuccChunkType::NuccChunkAmbient => NuccChunkAmbient::read_boxed(&data, version),
             NuccChunkType::NuccChunkMorphModel => NuccChunkMorphModel::read_boxed(&data, version),
+            NuccChunkType::NuccChunkNub => NuccChunkNub::read_boxed(&data, version),
             _ => Ok((
                 data.clone(),
                 Box::new(NuccChunkUnknown {
@@ -189,6 +192,7 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkMorphModel => {
                 NuccChunkMorphModel::write_boxed(boxed, &mut output, version)?
             }
+            NuccChunkType::NuccChunkNub => NuccChunkNub::write_boxed(boxed, &mut output, version)?,
             NuccChunkType::NuccChunkUnknown => {
                 let unknown = boxed
                     .downcast::<NuccChunkUnknown>()

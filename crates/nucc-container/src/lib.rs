@@ -3,4 +3,4 @@
 mod document;
 
 pub use document::{NuccChunkEntry, NuccXfbinDocument, NuccXfbinPage};
-pub use nucc_chunk::NuccChunkTexture;
+pub use nucc_chunk::{NuccChunkModel, NuccChunkNub, NuccChunkTexture};
