@@ -5,7 +5,8 @@ pub mod nucc_chunk;
 
 pub use nucc_chunk::{
     NuccChunk, NuccChunkAmbient, NuccChunkAnm, NuccChunkAnmStrm, NuccChunkAnmStrmFrame,
-    NuccChunkBinary, NuccChunkCamera, NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint,
-    NuccChunkMorphModel, NuccChunkNull, NuccChunkPage, NuccChunkParticle, NuccChunkType,
-    NuccChunkTypeExt, NuccChunkUnknown,
+    NuccChunkBinary, NuccChunkCamera, NuccChunkClump, NuccChunkCoord, NuccChunkDynamics,
+    NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint, NuccChunkMaterial, NuccChunkModel,
+    NuccChunkMorphModel, NuccChunkNull, NuccChunkPage, NuccChunkParticle, NuccChunkTexture,
+    NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown,
 };

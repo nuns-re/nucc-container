@@ -4,13 +4,19 @@ pub mod nucc_chunk_anmstrm;
 pub mod nucc_chunk_anmstrmframe;
 pub mod nucc_chunk_binary;
 pub mod nucc_chunk_camera;
+pub mod nucc_chunk_clump;
+pub mod nucc_chunk_coord;
+pub mod nucc_chunk_dynamics;
 pub mod nucc_chunk_layerset;
 pub mod nucc_chunk_lightdirc;
 pub mod nucc_chunk_lightpoint;
+pub mod nucc_chunk_material;
+pub mod nucc_chunk_model;
 pub mod nucc_chunk_morphmodel;
 pub mod nucc_chunk_null;
 pub mod nucc_chunk_page;
 pub mod nucc_chunk_particle;
+pub mod nucc_chunk_texture;
 pub mod nucc_chunk_unknown;
 
 use binrw::{io::Cursor, BinRead, BinWrite};
@@ -26,13 +32,19 @@ pub use nucc_chunk_anmstrm::NuccChunkAnmStrm;
 pub use nucc_chunk_anmstrmframe::NuccChunkAnmStrmFrame;
 pub use nucc_chunk_binary::NuccChunkBinary;
 pub use nucc_chunk_camera::NuccChunkCamera;
+pub use nucc_chunk_clump::NuccChunkClump;
+pub use nucc_chunk_coord::NuccChunkCoord;
+pub use nucc_chunk_dynamics::{DynamicsCollisionSphere, DynamicsSpringGroup, NuccChunkDynamics};
 pub use nucc_chunk_layerset::NuccChunkLayerSet;
 pub use nucc_chunk_lightdirc::NuccChunkLightDirc;
 pub use nucc_chunk_lightpoint::NuccChunkLightPoint;
+pub use nucc_chunk_material::{MaterialTextureGroup, NuccChunkMaterial};
+pub use nucc_chunk_model::NuccChunkModel;
 pub use nucc_chunk_morphmodel::NuccChunkMorphModel;
 pub use nucc_chunk_null::NuccChunkNull;
 pub use nucc_chunk_page::NuccChunkPage;
 pub use nucc_chunk_particle::NuccChunkParticle;
+pub use nucc_chunk_texture::NuccChunkTexture;
 pub use nucc_chunk_unknown::NuccChunkUnknown;
 pub use nucc_core::NuccChunkType;
 
@@ -55,7 +67,7 @@ pub trait NuccChunk: Downcast + fmt::Debug {
         Self: Sized + BinRead<Args = (u16,)>,
     {
         let mut cursor = Cursor::new(input);
-        let result = Self::read_le_args(&mut cursor, (version,))?;
+        let result = Self::read_be_args(&mut cursor, (version,))?;
         Ok((input.to_vec(), Box::new(result) as Box<dyn NuccChunk>))
     }
 
@@ -71,7 +83,7 @@ pub trait NuccChunk: Downcast + fmt::Debug {
             .downcast::<Self>()
             .map(|chunk| *chunk)
             .map_err(|_| "chunk type mismatch")?;
-        Self::write_le_args(&chunk, output, (version,))?;
+        Self::write_be_args(&chunk, output, (version,))?;
         Ok(())
     }
 }
@@ -97,6 +109,12 @@ impl NuccChunkTypeExt for NuccChunkType {
                 NuccChunkAnmStrmFrame::read_boxed(&data, version)
             }
             NuccChunkType::NuccChunkCamera => NuccChunkCamera::read_boxed(&data, version),
+            NuccChunkType::NuccChunkClump => NuccChunkClump::read_boxed(&data, version),
+            NuccChunkType::NuccChunkCoord => NuccChunkCoord::read_boxed(&data, version),
+            NuccChunkType::NuccChunkDynamics => NuccChunkDynamics::read_boxed(&data, version),
+            NuccChunkType::NuccChunkMaterial => NuccChunkMaterial::read_boxed(&data, version),
+            NuccChunkType::NuccChunkModel => NuccChunkModel::read_boxed(&data, version),
+            NuccChunkType::NuccChunkTexture => NuccChunkTexture::read_boxed(&data, version),
             NuccChunkType::NuccChunkLightDirc => NuccChunkLightDirc::read_boxed(&data, version),
             NuccChunkType::NuccChunkLightPoint => NuccChunkLightPoint::read_boxed(&data, version),
             NuccChunkType::NuccChunkLayerSet => NuccChunkLayerSet::read_boxed(&data, version),
@@ -137,6 +155,24 @@ impl NuccChunkTypeExt for NuccChunkType {
             }
             NuccChunkType::NuccChunkCamera => {
                 NuccChunkCamera::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkClump => {
+                NuccChunkClump::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkCoord => {
+                NuccChunkCoord::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkDynamics => {
+                NuccChunkDynamics::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkMaterial => {
+                NuccChunkMaterial::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkModel => {
+                NuccChunkModel::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkTexture => {
+                NuccChunkTexture::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkLightDirc => {
                 NuccChunkLightDirc::write_boxed(boxed, &mut output, version)?
