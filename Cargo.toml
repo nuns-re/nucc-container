@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nucc-core",
+    "crates/nucc-xfbin",
+    "crates/nucc-chunk",
+    "crates/nucc-container",
+    "crates/nucc-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+anyhow = "1"
+binrw = "0.10"
+clap = { version = "4", features = ["derive"] }
+downcast-rs = "1.2"
+indexmap = "2"
+nucc-core = { path = "crates/nucc-core" }
+nucc-xfbin = { path = "crates/nucc-xfbin" }
+nucc-chunk = { path = "crates/nucc-chunk" }
+nucc-container = { path = "crates/nucc-container" }
+thiserror = "2"

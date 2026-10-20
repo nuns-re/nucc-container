@@ -1,0 +1,12 @@
+[package]
+name = "nucc-chunk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+binrw.workspace = true
+downcast-rs.workspace = true
+nucc-core.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,13 @@
+[package]
+name = "nucc-container"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+indexmap.workspace = true
+nucc-core.workspace = true
+nucc-xfbin.workspace = true
+nucc-chunk.workspace = true
+thiserror.workspace = true

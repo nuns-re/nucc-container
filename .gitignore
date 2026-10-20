@@ -1,0 +1,8 @@
+target/
+*.xfbin
+*.cpk
+*.nud
+*.nut
+*.nsh
+*.nub
+*.nfh

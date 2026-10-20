@@ -1,0 +1,11 @@
+[package]
+name = "nucc-xfbin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+binrw.workspace = true
+nucc-core.workspace = true
+thiserror.workspace = true
