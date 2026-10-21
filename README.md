@@ -39,15 +39,6 @@ nucc acb BGM.acb
 nucc awb BGM.awb
 ```
 
-## Scope
-
-This repository owns the XFBIN container and NUCC chunk envelope. It does not
-contain game assets. Leaf formats such as NUD, NUT, NSH, and NFH are read by
-the separate `nu` library. `nucc-nus3` handles the NUS3BANK payload and
-`nucc-acb` handles the ACB payload carried by `nuccChunkNub`. `nucc-awb`
-handles AFS2 wave banks, including embedded `AwbFile` data and standalone
-`.awb` files.
-
 ## Supported chunks
 
 | Chunk type | Source |
