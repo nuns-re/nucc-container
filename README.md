@@ -73,9 +73,7 @@ nucc awb BGM.awb
 | `nuccChunkTexture` | [nucc_chunk_texture.rs](crates/nucc-chunk/src/nucc_chunk/nucc_chunk_texture.rs) |
 | `nuccChunkTrail` | [nucc_chunk_trail.rs](crates/nucc-chunk/src/nucc_chunk/nucc_chunk_trail.rs) |
 
-`nuccChunkIndex` is the XFBIN chunk-table entry and is handled by the
-container index rather than a leaf chunk parser. Unsupported leaf types remain
-`nuccChunkFont`, `nuccChunkSprite`, `nuccChunkSprite2`, `nuccChunkSpriteAnm`,
+Unsupported types `nuccChunkFont`, `nuccChunkSprite`, `nuccChunkSprite2`, `nuccChunkSpriteAnm`,
 and `nuccChunkSprite2Anm`.
 
 ## License
