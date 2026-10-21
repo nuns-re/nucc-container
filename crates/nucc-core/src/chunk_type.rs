@@ -6,7 +6,7 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum NuccChunkType {
     NuccChunkNull,
-    NuccChunkTable,
+    NuccChunkIndex,
     NuccChunkPage,
     NuccChunkBinary,
     NuccChunkAnm,
@@ -47,7 +47,7 @@ impl NuccChunkType {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::NuccChunkNull => "nuccChunkNull",
-            Self::NuccChunkTable => "nuccChunkTable",
+            Self::NuccChunkIndex => "nuccChunkIndex",
             Self::NuccChunkPage => "nuccChunkPage",
             Self::NuccChunkBinary => "nuccChunkBinary",
             Self::NuccChunkAnm => "nuccChunkAnm",
@@ -99,7 +99,7 @@ impl FromStr for NuccChunkType {
         let value = value.trim_start_matches("nuccChunk");
         Ok(match value.to_ascii_lowercase().as_str() {
             "null" => Self::NuccChunkNull,
-            "index" | "table" => Self::NuccChunkTable,
+            "index" => Self::NuccChunkIndex,
             "page" => Self::NuccChunkPage,
             "binary" => Self::NuccChunkBinary,
             "anm" => Self::NuccChunkAnm,
@@ -149,16 +149,12 @@ mod tests {
         for chunk_type in [
             NuccChunkType::NuccChunkAnm,
             NuccChunkType::NuccChunkBinary,
+            NuccChunkType::NuccChunkIndex,
             NuccChunkType::NuccChunkModel,
-            NuccChunkType::NuccChunkTable,
             NuccChunkType::NuccChunkTexture,
             NuccChunkType::NuccChunkUnknown,
         ] {
             assert_eq!(NuccChunkType::from_str(chunk_type.as_str()), Ok(chunk_type));
         }
-        assert_eq!(
-            NuccChunkType::from_str("nuccChunkIndex"),
-            Ok(NuccChunkType::NuccChunkTable)
-        );
     }
 }

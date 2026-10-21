@@ -156,7 +156,7 @@ impl NuccChunkTypeExt for NuccChunkType {
     fn write_data(boxed: Box<dyn NuccChunk>, version: u16) -> NuccChunkWriteResult {
         let mut output = Cursor::new(Vec::new());
         match boxed.chunk_type() {
-            NuccChunkType::NuccChunkNull | NuccChunkType::NuccChunkTable => {
+            NuccChunkType::NuccChunkNull | NuccChunkType::NuccChunkIndex => {
                 return Ok(output.into_inner());
             }
             NuccChunkType::NuccChunkPage => {
