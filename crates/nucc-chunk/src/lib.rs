@@ -8,11 +8,13 @@ pub use nucc_chunk::{
     NuccChunkAnmStrm, NuccChunkAnmStrmFrame, NuccChunkBillboard, NuccChunkBinary, NuccChunkCamera,
     NuccChunkClump, NuccChunkCoord, NuccChunkDynamics, NuccChunkLayerSet, NuccChunkLightDirc,
     NuccChunkLightPoint, NuccChunkLightSet, NuccChunkMaterial, NuccChunkModel, NuccChunkModelHit,
-    NuccChunkModelVertex, NuccChunkMorphModel, NuccChunkNub, NuccChunkNull, NuccChunkPage,
-    NuccChunkParticle, NuccChunkReference, NuccChunkTexture, NuccChunkTrail, NuccChunkType,
-    NuccChunkTypeExt, NuccChunkUnknown, NuccLayerSetLayer, NuccLayerSetSelector,
-    NuccLightSetCategory, NuccLightSetCategoryGroup, NuccLightSetMode, NuccModelHitObject,
-    NuccModelHitTriangle, NuccMorphModelTarget,
+    NuccChunkModelPrimitiveBatch, NuccChunkModelVertex, NuccChunkMorphModel,
+    NuccChunkMorphPrimitive, NuccChunkNub, NuccChunkNull, NuccChunkPage, NuccChunkParticle,
+    NuccChunkPostFilter, NuccChunkPrimitiveVertex, NuccChunkReference, NuccChunkTexture,
+    NuccChunkTrail, NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown, NuccLayerSetLayer,
+    NuccLayerSetSelector, NuccLightSetCategory, NuccLightSetCategoryGroup, NuccLightSetMode,
+    NuccModelHitObject, NuccModelHitTriangle, NuccModelPrimitiveBatchEntry, NuccMorphModelTarget,
+    NuccMorphPrimitiveTarget,
 };
 
 #[cfg(feature = "nus3")]

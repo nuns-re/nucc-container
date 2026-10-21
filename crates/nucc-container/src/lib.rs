@@ -6,10 +6,12 @@ pub use document::{NuccChunkEntry, NuccXfbinDocument, NuccXfbinPage};
 pub use nucc_chunk::{
     NuccBillboardAnmData, NuccBillboardReference, NuccChunkAmbient, NuccChunkBillboard,
     NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint, NuccChunkLightSet, NuccChunkModel,
-    NuccChunkModelHit, NuccChunkModelVertex, NuccChunkMorphModel, NuccChunkNub, NuccChunkReference,
-    NuccChunkTexture, NuccChunkTrail, NuccLayerSetLayer, NuccLayerSetSelector,
+    NuccChunkModelHit, NuccChunkModelPrimitiveBatch, NuccChunkModelVertex, NuccChunkMorphModel,
+    NuccChunkMorphPrimitive, NuccChunkNub, NuccChunkPostFilter, NuccChunkPrimitiveVertex,
+    NuccChunkReference, NuccChunkTexture, NuccChunkTrail, NuccLayerSetLayer, NuccLayerSetSelector,
     NuccLightSetCategory, NuccLightSetCategoryGroup, NuccLightSetMode, NuccModelHitObject,
-    NuccModelHitTriangle, NuccMorphModelTarget,
+    NuccModelHitTriangle, NuccModelPrimitiveBatchEntry, NuccMorphModelTarget,
+    NuccMorphPrimitiveTarget,
 };
 
 #[cfg(feature = "nus3")]

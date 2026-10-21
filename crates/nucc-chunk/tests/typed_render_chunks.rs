@@ -1,7 +1,8 @@
 use nucc_chunk::{
     NuccChunkAmbient, NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint,
-    NuccChunkLightSet, NuccChunkModelHit, NuccChunkModelVertex, NuccChunkMorphModel, NuccChunkType,
-    NuccChunkTypeExt,
+    NuccChunkLightSet, NuccChunkModelHit, NuccChunkModelPrimitiveBatch, NuccChunkModelVertex,
+    NuccChunkMorphModel, NuccChunkMorphPrimitive, NuccChunkPostFilter, NuccChunkPrimitiveVertex,
+    NuccChunkType, NuccChunkTypeExt,
 };
 
 fn f32be(value: f32) -> [u8; 4] {
@@ -188,6 +189,98 @@ fn model_hit_v122_round_trip() {
     assert_eq!(hit.objects[0].attr_b, 0x12345678);
     assert_eq!(hit.objects[0].unused_pad, 0x9abcdef0);
     assert_eq!(NuccChunkType::write_data(hit, 0x7a).unwrap(), data);
+}
+
+#[test]
+fn primitive_vertex_round_trip() {
+    let mut data = Vec::new();
+    for value in [1u32, 0, 8, 2] {
+        data.extend_from_slice(&value.to_be_bytes());
+    }
+    data.extend_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8]);
+    data.extend_from_slice(&[9, 10, 11, 12, 13, 14, 15, 16]);
+
+    let (_, boxed) =
+        NuccChunkType::read_data(data.clone(), "nuccChunkPrimitiveVertex", 0x79).unwrap();
+    let vertex = boxed.downcast::<NuccChunkPrimitiveVertex>().unwrap();
+    assert_eq!(vertex.primitive_type, 1);
+    assert_eq!(vertex.vertex_format, 0);
+    assert_eq!(vertex.vertex_stride, 8);
+    assert_eq!(vertex.vertex_count, 2);
+    assert_eq!(vertex.data.len(), 16);
+    assert_eq!(NuccChunkType::write_data(vertex, 0x79).unwrap(), data);
+}
+
+#[test]
+fn model_primitive_batch_round_trip() {
+    let mut data = Vec::new();
+    for value in [2u32, 5, 17, 0] {
+        data.extend_from_slice(&value.to_be_bytes());
+    }
+    for value in [2u16, 1, 0, 0, 0, 0x0b00] {
+        data.extend_from_slice(&value.to_be_bytes());
+    }
+    data.extend_from_slice(&0u32.to_be_bytes());
+    for value in [32u32, 0x1f003, 0] {
+        data.extend_from_slice(&value.to_be_bytes());
+    }
+    for value in [12u32, 2424] {
+        data.extend_from_slice(&value.to_be_bytes());
+    }
+    for (coord_id, vertex_num, index) in [(0u16, 14u16, 2424u32), (0, 16, 2424)] {
+        data.extend_from_slice(&coord_id.to_be_bytes());
+        data.extend_from_slice(&vertex_num.to_be_bytes());
+        data.extend_from_slice(&index.to_be_bytes());
+    }
+
+    let (_, boxed) =
+        NuccChunkType::read_data(data.clone(), "nuccChunkModelPrimitiveBatch", 0x79).unwrap();
+    let batch = boxed.downcast::<NuccChunkModelPrimitiveBatch>().unwrap();
+    assert_eq!(batch.coord_index, 2);
+    assert_eq!(batch.primitive_vertex_index, 17);
+    assert_eq!(batch.batch_count, 2);
+    assert_eq!(batch.shared, [32, 0x1f003, 0]);
+    assert_eq!(batch.optional, Some([12, 2424]));
+    assert_eq!(batch.batches[1].vertex_num, 16);
+    assert_eq!(NuccChunkType::write_data(batch, 0x79).unwrap(), data);
+}
+
+#[test]
+fn morph_primitive_round_trip() {
+    let mut data = Vec::new();
+    data.extend_from_slice(&2u16.to_be_bytes());
+    data.extend_from_slice(&0u16.to_be_bytes());
+    data.extend_from_slice(&7u32.to_be_bytes());
+    data.extend_from_slice(&9u32.to_be_bytes());
+    data.extend_from_slice(&0u32.to_be_bytes());
+    for (target, weight, reserved) in [(10u32, 0.25f32, 0u32), (11, 0.75, 0)] {
+        data.extend_from_slice(&target.to_be_bytes());
+        data.extend_from_slice(&f32be(weight));
+        data.extend_from_slice(&reserved.to_be_bytes());
+    }
+
+    let (_, boxed) =
+        NuccChunkType::read_data(data.clone(), "nuccChunkMorphPrimitive", 0x79).unwrap();
+    let morph = boxed.downcast::<NuccChunkMorphPrimitive>().unwrap();
+    assert_eq!(morph.target_num, 2);
+    assert_eq!(morph.attribute, 7);
+    assert_eq!(morph.model_primitive_base_index, 9);
+    assert_eq!(morph.targets[1].weight, 0.75);
+    assert_eq!(NuccChunkType::write_data(morph, 0x79).unwrap(), data);
+}
+
+#[test]
+fn post_filter_round_trip() {
+    let mut data = 3u16.to_be_bytes().to_vec();
+    data.extend_from_slice(&2u16.to_be_bytes());
+    data.extend_from_slice(&f32be(0.5));
+    data.extend_from_slice(&f32be(2.0));
+
+    let (_, boxed) = NuccChunkType::read_data(data.clone(), "nuccChunkPostFilter", 0x79).unwrap();
+    let filter = boxed.downcast::<NuccChunkPostFilter>().unwrap();
+    assert_eq!(filter.filter_type, 3);
+    assert_eq!(filter.params, [0.5, 2.0]);
+    assert_eq!(NuccChunkType::write_data(filter, 0x79).unwrap(), data);
 }
 
 #[test]

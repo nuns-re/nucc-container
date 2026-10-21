@@ -15,12 +15,16 @@ pub mod nucc_chunk_lightset;
 pub mod nucc_chunk_material;
 pub mod nucc_chunk_model;
 pub mod nucc_chunk_modelhit;
+pub mod nucc_chunk_modelprimitivebatch;
 pub mod nucc_chunk_modelvertex;
 pub mod nucc_chunk_morphmodel;
+pub mod nucc_chunk_morphprimitive;
 pub mod nucc_chunk_nub;
 pub mod nucc_chunk_null;
 pub mod nucc_chunk_page;
 pub mod nucc_chunk_particle;
+pub mod nucc_chunk_postfilter;
+pub mod nucc_chunk_primitivevertex;
 pub mod nucc_chunk_reference;
 pub mod nucc_chunk_texture;
 pub mod nucc_chunk_trail;
@@ -52,12 +56,18 @@ pub use nucc_chunk_lightset::{
 pub use nucc_chunk_material::{MaterialTextureGroup, NuccChunkMaterial};
 pub use nucc_chunk_model::NuccChunkModel;
 pub use nucc_chunk_modelhit::{NuccChunkModelHit, NuccModelHitObject, NuccModelHitTriangle};
+pub use nucc_chunk_modelprimitivebatch::{
+    NuccChunkModelPrimitiveBatch, NuccModelPrimitiveBatchEntry,
+};
 pub use nucc_chunk_modelvertex::NuccChunkModelVertex;
 pub use nucc_chunk_morphmodel::{NuccChunkMorphModel, NuccMorphModelTarget};
+pub use nucc_chunk_morphprimitive::{NuccChunkMorphPrimitive, NuccMorphPrimitiveTarget};
 pub use nucc_chunk_nub::NuccChunkNub;
 pub use nucc_chunk_null::NuccChunkNull;
 pub use nucc_chunk_page::NuccChunkPage;
 pub use nucc_chunk_particle::NuccChunkParticle;
+pub use nucc_chunk_postfilter::NuccChunkPostFilter;
+pub use nucc_chunk_primitivevertex::NuccChunkPrimitiveVertex;
 pub use nucc_chunk_reference::NuccChunkReference;
 pub use nucc_chunk_texture::NuccChunkTexture;
 pub use nucc_chunk_trail::NuccChunkTrail;
@@ -139,8 +149,18 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkLayerSet => NuccChunkLayerSet::read_boxed(&data, version),
             NuccChunkType::NuccChunkAmbient => NuccChunkAmbient::read_boxed(&data, version),
             NuccChunkType::NuccChunkModelHit => NuccChunkModelHit::read_boxed(&data, version),
+            NuccChunkType::NuccChunkModelPrimitiveBatch => {
+                NuccChunkModelPrimitiveBatch::read_boxed(&data, version)
+            }
             NuccChunkType::NuccChunkModelVertex => NuccChunkModelVertex::read_boxed(&data, version),
             NuccChunkType::NuccChunkMorphModel => NuccChunkMorphModel::read_boxed(&data, version),
+            NuccChunkType::NuccChunkMorphPrimitive => {
+                NuccChunkMorphPrimitive::read_boxed(&data, version)
+            }
+            NuccChunkType::NuccChunkPostFilter => NuccChunkPostFilter::read_boxed(&data, version),
+            NuccChunkType::NuccChunkPrimitiveVertex => {
+                NuccChunkPrimitiveVertex::read_boxed(&data, version)
+            }
             NuccChunkType::NuccChunkNub => NuccChunkNub::read_boxed(&data, version),
             _ => Ok((
                 data.clone(),
@@ -220,11 +240,23 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkModelHit => {
                 NuccChunkModelHit::write_boxed(boxed, &mut output, version)?
             }
+            NuccChunkType::NuccChunkModelPrimitiveBatch => {
+                NuccChunkModelPrimitiveBatch::write_boxed(boxed, &mut output, version)?
+            }
             NuccChunkType::NuccChunkModelVertex => {
                 NuccChunkModelVertex::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkMorphModel => {
                 NuccChunkMorphModel::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkMorphPrimitive => {
+                NuccChunkMorphPrimitive::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkPostFilter => {
+                NuccChunkPostFilter::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkPrimitiveVertex => {
+                NuccChunkPrimitiveVertex::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkNub => NuccChunkNub::write_boxed(boxed, &mut output, version)?,
             NuccChunkType::NuccChunkUnknown => {

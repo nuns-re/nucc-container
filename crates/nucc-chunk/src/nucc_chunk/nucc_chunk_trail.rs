@@ -302,25 +302,31 @@ fn decode_trail(input: &[u8], version: u16) -> Result<NuccChunkTrail> {
     let legacy = version < 0x79;
     let pos_stride = if legacy { 32 } else { 48 };
     let ff_stride = if legacy { 48 } else { 64 };
-    let strides = [96usize, 32, pos_stride, ff_stride];
-    for (index, stride) in strides.into_iter().enumerate() {
-        let section = sections[index];
-        if section.count as usize * stride != section.size as usize {
-            return Err(NuccError::InvalidIndex(format!(
-                "invalid trail section {index} size"
-            )));
-        }
-        let end = section.position as usize + section.size as usize;
-        if end > input.len() {
-            return Err(NuccError::Truncated);
-        }
-    }
-
     for pair in sections.windows(2) {
         if pair[0].position > pair[1].position {
             return Err(NuccError::InvalidIndex(
                 "trail sections are out of order".into(),
             ));
+        }
+    }
+
+    let strides = [96usize, 32, pos_stride, ff_stride];
+    for (index, stride) in strides.into_iter().enumerate() {
+        let section = sections[index];
+        let end = if index + 1 < sections.len() {
+            sections[index + 1].position as usize
+        } else {
+            input.len()
+        };
+        let start = section.position as usize;
+        let expected = section.count as usize * stride;
+        if end < start || end.saturating_sub(start) < expected {
+            return Err(NuccError::InvalidIndex(format!(
+                "invalid trail section {index} bounds"
+            )));
+        }
+        if end > input.len() {
+            return Err(NuccError::Truncated);
         }
     }
 
@@ -485,6 +491,15 @@ fn encode_trail(
     let pos_size = trail.pos_data.len() * pos_stride;
     let ff_size = trail.ff_data.len() * ff_stride;
     let timeline_offset = 40 + gen_size + billboard_size + pos_size + ff_size;
+    let section_size = |stored: u16, count: usize, actual: usize| {
+        if count == 0 {
+            0
+        } else if stored != 0 {
+            stored as usize
+        } else {
+            actual
+        }
+    };
 
     let mut timeline_bytes = Vec::new();
     for timeline in &trail.timelines {
@@ -499,30 +514,43 @@ fn encode_trail(
     }
 
     let mut output = Vec::new();
-    write_section(&mut output, 40, trail.gen_data.len(), gen_size)?;
+    write_section(
+        &mut output,
+        40,
+        trail.gen_data.len(),
+        section_size(trail.header.gen.size, trail.gen_data.len(), gen_size),
+    )?;
     write_section(
         &mut output,
         40 + gen_size,
         trail.billboard_data.len(),
-        billboard_size,
+        section_size(
+            trail.header.billboard.size,
+            trail.billboard_data.len(),
+            billboard_size,
+        ),
     )?;
     write_section(
         &mut output,
         40 + gen_size + billboard_size,
         trail.pos_data.len(),
-        pos_size,
+        section_size(trail.header.pos.size, trail.pos_data.len(), pos_size),
     )?;
     write_section(
         &mut output,
         40 + gen_size + billboard_size + pos_size,
         trail.ff_data.len(),
-        ff_size,
+        section_size(trail.header.ff.size, trail.ff_data.len(), ff_size),
     )?;
     write_section(
         &mut output,
         timeline_offset,
         trail.timelines.len(),
-        timeline_bytes.len(),
+        section_size(
+            trail.header.timeline.size,
+            trail.timelines.len(),
+            timeline_bytes.len(),
+        ),
     )?;
 
     for gen in &trail.gen_data {
@@ -650,6 +678,26 @@ mod tests {
             let encoded = encode_trail(&trail, version).unwrap();
             assert_eq!(encoded, data);
         }
+    }
+
+    #[test]
+    fn accepts_noncanonical_section_sizes() {
+        let mut data = vec![0u8; 264];
+        for (index, position, count, size) in [
+            (0, 40u32, 1u16, 96u16),
+            (1, 136, 1, 96),
+            (2, 168, 2, 192),
+            (3, 264, 0, 0),
+            (4, 264, 0, 0),
+        ] {
+            data[index * 8..index * 8 + 4].copy_from_slice(&position.to_be_bytes());
+            data[index * 8 + 4..index * 8 + 6].copy_from_slice(&count.to_be_bytes());
+            data[index * 8 + 6..index * 8 + 8].copy_from_slice(&size.to_be_bytes());
+        }
+        let trail = decode_trail(&data, 0x79).unwrap();
+        assert_eq!(trail.billboard_data.len(), 1);
+        assert_eq!(trail.pos_data.len(), 2);
+        assert_eq!(encode_trail(&trail, 0x79).unwrap(), data);
     }
 
     #[test]
