@@ -212,6 +212,7 @@ checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 [[package]]
 name = "nu"
 version = "0.1.0"
+source = "git+https://github.com/nuns-re/nu-library.git?rev=b9606d7#b9606d78b92192ea371369fd42d7b449e3eb8b86"
 dependencies = [
  "nu-core",
  "nu-formats",
@@ -221,6 +222,7 @@ dependencies = [
 [[package]]
 name = "nu-core"
 version = "0.1.0"
+source = "git+https://github.com/nuns-re/nu-library.git?rev=b9606d7#b9606d78b92192ea371369fd42d7b449e3eb8b86"
 dependencies = [
  "anyhow",
  "binrw",
@@ -229,6 +231,7 @@ dependencies = [
 [[package]]
 name = "nu-formats"
 version = "0.1.0"
+source = "git+https://github.com/nuns-re/nu-library.git?rev=b9606d7#b9606d78b92192ea371369fd42d7b449e3eb8b86"
 dependencies = [
  "anyhow",
  "binrw",
@@ -239,6 +242,7 @@ dependencies = [
 [[package]]
 name = "nu-render"
 version = "0.1.0"
+source = "git+https://github.com/nuns-re/nu-library.git?rev=b9606d7#b9606d78b92192ea371369fd42d7b449e3eb8b86"
 dependencies = [
  "nu-core",
 ]

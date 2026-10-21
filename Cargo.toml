@@ -23,7 +23,7 @@ binrw = "0.10"
 clap = { version = "4", features = ["derive"] }
 downcast-rs = "1.2"
 indexmap = "2"
-nu = { path = "../nu/crates/nu" }
+nu = { git = "https://github.com/nuns-re/nu-library.git", rev = "b9606d7", package = "nu" }
 nucc-core = { path = "crates/nucc-core" }
 nucc-xfbin = { path = "crates/nucc-xfbin" }
 nucc-chunk = { path = "crates/nucc-chunk" }
