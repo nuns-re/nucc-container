@@ -6,7 +6,7 @@ use binrw::{
 };
 use nucc_core::{NuccError, Result};
 
-use super::{NuccChunk, NuccChunkType};
+use super::{NuccChunk, NuccChunkCoord, NuccChunkReference, NuccChunkType};
 
 #[derive(Debug, Clone, Default)]
 pub struct NuccChunkTrail {
@@ -17,6 +17,9 @@ pub struct NuccChunkTrail {
     pub pos_data: Vec<NuccXfbinTrailPosData>,
     pub ff_data: Vec<NuccXfbinTrailFFData>,
     pub timelines: Vec<NuccTrailTimelineParam>,
+    pub reference: Option<NuccChunkReference>,
+    pub coord: Option<NuccChunkCoord>,
+    pub raw_data: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -196,9 +199,46 @@ impl NuccChunk for NuccChunkTrail {
     }
 
     fn read_boxed(input: &[u8], version: u16) -> super::NuccChunkReadResult {
-        let trail = decode_trail(input, version)
-            .map_err(|error| Box::new(error) as Box<dyn std::error::Error>)?;
-        Ok((input.to_vec(), Box::new(trail)))
+        if input.len() == 8 {
+            let reference = NuccChunkReference {
+                indices: [read_u32be(input, 0)?, read_u32be(input, 4)?],
+            };
+            let trail = NuccChunkTrail {
+                version,
+                reference: Some(reference),
+                ..Default::default()
+            };
+            return Ok((input.to_vec(), Box::new(trail)));
+        }
+
+        if input.len() == 42 {
+            if let Ok((_, chunk)) = NuccChunkCoord::read_boxed(input, version) {
+                if let Ok(coord) = chunk.downcast::<NuccChunkCoord>() {
+                    let trail = NuccChunkTrail {
+                        version,
+                        coord: Some(*coord),
+                        ..Default::default()
+                    };
+                    return Ok((input.to_vec(), Box::new(trail)));
+                }
+            }
+        }
+
+        match decode_trail(input, version) {
+            Ok(trail) => Ok((input.to_vec(), Box::new(trail))),
+            Err(_) => {
+                let trail = NuccChunkTrail {
+                    version,
+                    raw_data: Some(input.to_vec()),
+                    ..Default::default()
+                };
+                Ok((input.to_vec(), Box::new(trail)))
+            }
+        }
+    }
+
+    fn is_opaque(&self) -> bool {
+        self.raw_data.is_some()
     }
 
     fn write_boxed(
@@ -210,6 +250,20 @@ impl NuccChunk for NuccChunkTrail {
             .downcast::<Self>()
             .map(|chunk| *chunk)
             .map_err(|_| "chunk type mismatch")?;
+        if let Some(reference) = trail.reference {
+            for index in reference.indices {
+                output.write_all(&index.to_be_bytes())?;
+            }
+            return Ok(());
+        }
+        if let Some(raw) = &trail.raw_data {
+            output.write_all(raw)?;
+            return Ok(());
+        }
+        if let Some(coord) = &trail.coord {
+            NuccChunkCoord::write_boxed(Box::new(coord.clone()), output, version)?;
+            return Ok(());
+        }
         output.write_all(&encode_trail(&trail, version)?)?;
         Ok(())
     }
@@ -308,6 +362,9 @@ fn decode_trail(input: &[u8], version: u16) -> Result<NuccChunkTrail> {
         pos_data,
         ff_data,
         timelines,
+        reference: None,
+        coord: None,
+        raw_data: None,
     })
 }
 

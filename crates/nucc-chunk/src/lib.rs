@@ -8,8 +8,9 @@ pub use nucc_chunk::{
     NuccChunkAnmStrm, NuccChunkAnmStrmFrame, NuccChunkBillboard, NuccChunkBinary, NuccChunkCamera,
     NuccChunkClump, NuccChunkCoord, NuccChunkDynamics, NuccChunkLayerSet, NuccChunkLightDirc,
     NuccChunkLightPoint, NuccChunkMaterial, NuccChunkModel, NuccChunkMorphModel, NuccChunkNub,
-    NuccChunkNull, NuccChunkPage, NuccChunkParticle, NuccChunkTexture, NuccChunkTrail,
-    NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown,
+    NuccChunkNull, NuccChunkPage, NuccChunkParticle, NuccChunkReference, NuccChunkTexture,
+    NuccChunkTrail, NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown, NuccLayerSetLayer,
+    NuccLayerSetSelector, NuccMorphModelTarget,
 };
 
 #[cfg(feature = "nus3")]

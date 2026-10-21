@@ -3,7 +3,7 @@ use std::io::Write;
 use binrw::{binrw, io::Cursor, BinRead, BinWrite};
 use nucc_core::{NuccError, Result};
 
-use super::{NuccChunk, NuccChunkType};
+use super::{NuccChunk, NuccChunkCoord, NuccChunkReference, NuccChunkType};
 
 #[binrw]
 #[brw(big)]
@@ -38,6 +38,16 @@ pub struct NuccChunkParticle {
 
     #[br(parse_with = binrw::until_eof)]
     pub trailing_data: Vec<u8>,
+
+    #[br(calc = None)]
+    #[bw(ignore)]
+    pub reference: Option<NuccChunkReference>,
+    #[br(calc = None)]
+    #[bw(ignore)]
+    pub coord: Option<NuccChunkCoord>,
+    #[br(calc = None)]
+    #[bw(ignore)]
+    pub raw_data: Option<Vec<u8>>,
 }
 
 impl NuccChunk for NuccChunkParticle {
@@ -50,9 +60,46 @@ impl NuccChunk for NuccChunkParticle {
     }
 
     fn read_boxed(input: &[u8], version: u16) -> super::NuccChunkReadResult {
-        let particle = decode_particle(input, version)
-            .map_err(|error| Box::new(error) as Box<dyn std::error::Error>)?;
-        Ok((input.to_vec(), Box::new(particle)))
+        if input.len() == 8 {
+            let reference = NuccChunkReference {
+                indices: [read_u32be(input, 0)?, read_u32be(input, 4)?],
+            };
+            let particle = NuccChunkParticle {
+                version,
+                reference: Some(reference),
+                ..Default::default()
+            };
+            return Ok((input.to_vec(), Box::new(particle)));
+        }
+
+        if input.len() == 42 {
+            if let Ok((_, chunk)) = NuccChunkCoord::read_boxed(input, version) {
+                if let Ok(coord) = chunk.downcast::<NuccChunkCoord>() {
+                    let particle = NuccChunkParticle {
+                        version,
+                        coord: Some(*coord),
+                        ..Default::default()
+                    };
+                    return Ok((input.to_vec(), Box::new(particle)));
+                }
+            }
+        }
+
+        match decode_particle(input, version) {
+            Ok(particle) => Ok((input.to_vec(), Box::new(particle))),
+            Err(_) => {
+                let particle = NuccChunkParticle {
+                    version,
+                    raw_data: Some(input.to_vec()),
+                    ..Default::default()
+                };
+                Ok((input.to_vec(), Box::new(particle)))
+            }
+        }
+    }
+
+    fn is_opaque(&self) -> bool {
+        self.raw_data.is_some()
     }
 
     fn write_boxed(
@@ -64,6 +111,20 @@ impl NuccChunk for NuccChunkParticle {
             .downcast::<Self>()
             .map(|chunk| *chunk)
             .map_err(|_| "chunk type mismatch")?;
+        if let Some(reference) = particle.reference {
+            for index in reference.indices {
+                output.write_all(&index.to_be_bytes())?;
+            }
+            return Ok(());
+        }
+        if let Some(raw) = &particle.raw_data {
+            output.write_all(raw)?;
+            return Ok(());
+        }
+        if let Some(coord) = &particle.coord {
+            NuccChunkCoord::write_boxed(Box::new(coord.clone()), output, version)?;
+            return Ok(());
+        }
         write_particle(&particle, version, output)
     }
 }
@@ -412,6 +473,11 @@ pub struct Timeline {
     #[br(if((frame_count * 4 + 4) % 8 != 0))]
     #[br(count = 4)]
     pub pad_to_8: Option<Vec<u8>>,
+}
+
+fn read_u32be(data: &[u8], at: usize) -> Result<u32> {
+    let bytes = data.get(at..at + 4).ok_or(NuccError::Truncated)?;
+    Ok(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
 }
 
 #[cfg(test)]

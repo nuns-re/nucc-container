@@ -4,8 +4,10 @@ mod document;
 
 pub use document::{NuccChunkEntry, NuccXfbinDocument, NuccXfbinPage};
 pub use nucc_chunk::{
-    NuccBillboardAnmData, NuccBillboardReference, NuccChunkBillboard, NuccChunkModel, NuccChunkNub,
-    NuccChunkTexture, NuccChunkTrail,
+    NuccBillboardAnmData, NuccBillboardReference, NuccChunkAmbient, NuccChunkBillboard,
+    NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint, NuccChunkModel,
+    NuccChunkMorphModel, NuccChunkNub, NuccChunkReference, NuccChunkTexture, NuccChunkTrail,
+    NuccLayerSetLayer, NuccLayerSetSelector, NuccMorphModelTarget,
 };
 
 #[cfg(feature = "nus3")]
