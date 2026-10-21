@@ -8,9 +8,15 @@ use super::{NuccChunk, NuccChunkReference, NuccChunkType};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NuccModelHitObject {
     pub poly_count: u32,
-    pub attr_a: u32,
-    pub attr_b: u32,
-    pub unused_pad: u32,
+    /// Native `a`: a 32-bit attribute word. Its low 29 bits are OR'ed with the
+    /// runtime orientation class; the top three wire bits are discarded.
+    pub attribute_a: u32,
+    /// Native `b`: stored raw at runtime polygon `+0x50`. Semantics are not
+    /// established; the player line/sphere predicate does not read it.
+    pub attribute_b: u32,
+    /// Fourth word of the wide (`version > 0x79`) group header. `Parse` reads
+    /// and discards it, so it is reserved rather than an attribute.
+    pub reserved: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -139,8 +145,8 @@ fn decode_model_hit(input: &[u8], version: u16) -> Result<NuccChunkModelHit> {
     let mut triangles = Vec::with_capacity(triangle_count);
     for _ in 0..object_count {
         let poly_count = reader.u32()?;
-        let attr_a = reader.u32()?;
-        let (attr_b, unused_pad) = if wide {
+        let attribute_a = reader.u32()?;
+        let (attribute_b, reserved) = if wide {
             (reader.u32()?, reader.u32()?)
         } else {
             (0, 0)
@@ -152,9 +158,9 @@ fn decode_model_hit(input: &[u8], version: u16) -> Result<NuccChunkModelHit> {
         }
         objects.push(NuccModelHitObject {
             poly_count,
-            attr_a,
-            attr_b,
-            unused_pad,
+            attribute_a,
+            attribute_b,
+            reserved,
         });
         for _ in 0..poly_count {
             let mut v = [[0.0f32; 3]; 3];
@@ -191,10 +197,10 @@ fn encode_model_hit(hit: &NuccChunkModelHit, version: u16) -> Result<Vec<u8>> {
     let mut triangle_offset = 0usize;
     for object in &hit.objects {
         push_u32(&mut output, object.poly_count);
-        push_u32(&mut output, object.attr_a);
+        push_u32(&mut output, object.attribute_a);
         if wide {
-            push_u32(&mut output, object.attr_b);
-            push_u32(&mut output, object.unused_pad);
+            push_u32(&mut output, object.attribute_b);
+            push_u32(&mut output, object.reserved);
         }
         let end = triangle_offset + object.poly_count as usize;
         let triangles = hit

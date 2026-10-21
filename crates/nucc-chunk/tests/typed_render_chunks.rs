@@ -164,7 +164,7 @@ fn model_hit_v121_round_trip() {
     let hit = boxed.downcast::<NuccChunkModelHit>().unwrap();
     assert_eq!(hit.objects.len(), 1);
     assert_eq!(hit.objects[0].poly_count, 1);
-    assert_eq!(hit.objects[0].attr_a, 0x3067);
+    assert_eq!(hit.objects[0].attribute_a, 0x3067);
     assert_eq!(hit.triangles.len(), 1);
     assert_eq!(hit.triangles[0].v[1], [100.0, 0.0, 0.0]);
     assert_eq!(NuccChunkType::write_data(hit, 0x79).unwrap(), data);
@@ -186,8 +186,8 @@ fn model_hit_v122_round_trip() {
 
     let (_, boxed) = NuccChunkType::read_data(data.clone(), "nuccChunkModelHit", 0x7a).unwrap();
     let hit = boxed.downcast::<NuccChunkModelHit>().unwrap();
-    assert_eq!(hit.objects[0].attr_b, 0x12345678);
-    assert_eq!(hit.objects[0].unused_pad, 0x9abcdef0);
+    assert_eq!(hit.objects[0].attribute_b, 0x12345678);
+    assert_eq!(hit.objects[0].reserved, 0x9abcdef0);
     assert_eq!(NuccChunkType::write_data(hit, 0x7a).unwrap(), data);
 }
 
