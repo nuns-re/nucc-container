@@ -2,6 +2,7 @@ pub mod nucc_chunk_ambient;
 pub mod nucc_chunk_anm;
 pub mod nucc_chunk_anmstrm;
 pub mod nucc_chunk_anmstrmframe;
+pub mod nucc_chunk_billboard;
 pub mod nucc_chunk_binary;
 pub mod nucc_chunk_camera;
 pub mod nucc_chunk_clump;
@@ -32,6 +33,7 @@ pub use nucc_chunk_ambient::NuccChunkAmbient;
 pub use nucc_chunk_anm::NuccChunkAnm;
 pub use nucc_chunk_anmstrm::NuccChunkAnmStrm;
 pub use nucc_chunk_anmstrmframe::NuccChunkAnmStrmFrame;
+pub use nucc_chunk_billboard::{NuccBillboardAnmData, NuccChunkBillboard};
 pub use nucc_chunk_binary::NuccChunkBinary;
 pub use nucc_chunk_camera::NuccChunkCamera;
 pub use nucc_chunk_clump::NuccChunkClump;
@@ -105,6 +107,7 @@ impl NuccChunkTypeExt for NuccChunkType {
         match NuccChunkType::from_str(chunk_type).unwrap_or(NuccChunkType::NuccChunkUnknown) {
             NuccChunkType::NuccChunkNull => Ok((data, Box::new(NuccChunkNull(version)))),
             NuccChunkType::NuccChunkPage => NuccChunkPage::read_boxed(&data, version),
+            NuccChunkType::NuccChunkBillboard => NuccChunkBillboard::read_boxed(&data, version),
             NuccChunkType::NuccChunkBinary => NuccChunkBinary::read_boxed(&data, version),
             NuccChunkType::NuccChunkAnm => NuccChunkAnm::read_boxed(&data, version),
             NuccChunkType::NuccChunkParticle => NuccChunkParticle::read_boxed(&data, version),
@@ -145,6 +148,9 @@ impl NuccChunkTypeExt for NuccChunkType {
             }
             NuccChunkType::NuccChunkPage => {
                 NuccChunkPage::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkBillboard => {
+                NuccChunkBillboard::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkBinary => {
                 NuccChunkBinary::write_boxed(boxed, &mut output, version)?

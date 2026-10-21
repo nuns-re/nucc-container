@@ -3,7 +3,10 @@
 mod document;
 
 pub use document::{NuccChunkEntry, NuccXfbinDocument, NuccXfbinPage};
-pub use nucc_chunk::{NuccChunkModel, NuccChunkNub, NuccChunkTexture, NuccChunkTrail};
+pub use nucc_chunk::{
+    NuccBillboardAnmData, NuccChunkBillboard, NuccChunkModel, NuccChunkNub, NuccChunkTexture,
+    NuccChunkTrail,
+};
 
 #[cfg(feature = "nus3")]
 pub use nucc_chunk::{Nus3Bank, Nus3Chunk, Nus3Codec, Nus3Tone};
