@@ -18,6 +18,7 @@ pub mod nucc_chunk_null;
 pub mod nucc_chunk_page;
 pub mod nucc_chunk_particle;
 pub mod nucc_chunk_texture;
+pub mod nucc_chunk_trail;
 pub mod nucc_chunk_unknown;
 
 use binrw::{io::Cursor, BinRead, BinWrite};
@@ -47,6 +48,7 @@ pub use nucc_chunk_null::NuccChunkNull;
 pub use nucc_chunk_page::NuccChunkPage;
 pub use nucc_chunk_particle::NuccChunkParticle;
 pub use nucc_chunk_texture::NuccChunkTexture;
+pub use nucc_chunk_trail::NuccChunkTrail;
 pub use nucc_chunk_unknown::NuccChunkUnknown;
 pub use nucc_core::NuccChunkType;
 
@@ -117,6 +119,7 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkMaterial => NuccChunkMaterial::read_boxed(&data, version),
             NuccChunkType::NuccChunkModel => NuccChunkModel::read_boxed(&data, version),
             NuccChunkType::NuccChunkTexture => NuccChunkTexture::read_boxed(&data, version),
+            NuccChunkType::NuccChunkTrail => NuccChunkTrail::read_boxed(&data, version),
             NuccChunkType::NuccChunkLightDirc => NuccChunkLightDirc::read_boxed(&data, version),
             NuccChunkType::NuccChunkLightPoint => NuccChunkLightPoint::read_boxed(&data, version),
             NuccChunkType::NuccChunkLayerSet => NuccChunkLayerSet::read_boxed(&data, version),
@@ -176,6 +179,9 @@ impl NuccChunkTypeExt for NuccChunkType {
             }
             NuccChunkType::NuccChunkTexture => {
                 NuccChunkTexture::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkTrail => {
+                NuccChunkTrail::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkLightDirc => {
                 NuccChunkLightDirc::write_boxed(boxed, &mut output, version)?

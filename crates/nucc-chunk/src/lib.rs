@@ -8,7 +8,7 @@ pub use nucc_chunk::{
     NuccChunkBinary, NuccChunkCamera, NuccChunkClump, NuccChunkCoord, NuccChunkDynamics,
     NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint, NuccChunkMaterial, NuccChunkModel,
     NuccChunkMorphModel, NuccChunkNub, NuccChunkNull, NuccChunkPage, NuccChunkParticle,
-    NuccChunkTexture, NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown,
+    NuccChunkTexture, NuccChunkTrail, NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown,
 };
 
 #[cfg(feature = "nus3")]
