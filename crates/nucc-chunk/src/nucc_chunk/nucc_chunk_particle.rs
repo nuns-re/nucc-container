@@ -1,4 +1,7 @@
-use binrw::binrw;
+use std::io::Write;
+
+use binrw::{binrw, io::Cursor, BinRead, BinWrite};
+use nucc_core::{NuccError, Result};
 
 use super::{NuccChunk, NuccChunkType};
 
@@ -32,15 +35,228 @@ pub struct NuccChunkParticle {
 
     #[br(count = timelines_hdr.entry_count)]
     pub timelines: Vec<Timeline>,
+
+    #[br(parse_with = binrw::until_eof)]
+    pub trailing_data: Vec<u8>,
 }
 
 impl NuccChunk for NuccChunkParticle {
     fn chunk_type(&self) -> NuccChunkType {
         NuccChunkType::NuccChunkParticle
     }
+
     fn version(&self) -> u16 {
         self.version
     }
+
+    fn read_boxed(input: &[u8], version: u16) -> super::NuccChunkReadResult {
+        let particle = decode_particle(input, version)
+            .map_err(|error| Box::new(error) as Box<dyn std::error::Error>)?;
+        Ok((input.to_vec(), Box::new(particle)))
+    }
+
+    fn write_boxed(
+        boxed: Box<dyn NuccChunk>,
+        output: &mut Cursor<Vec<u8>>,
+        version: u16,
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let particle = boxed
+            .downcast::<Self>()
+            .map(|chunk| *chunk)
+            .map_err(|_| "chunk type mismatch")?;
+        write_particle(&particle, version, output)
+    }
+}
+
+fn write_particle(
+    particle: &NuccChunkParticle,
+    version: u16,
+    output: &mut Cursor<Vec<u8>>,
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    if !matches!(version, 0x73 | 0x74 | 0x75 | 0x77 | 0x79 | 0x7a | 0x7b) {
+        return Err(Box::new(NuccError::Unsupported(format!(
+            "particle version {version:#x}"
+        ))));
+    }
+
+    particle.settings_hdr.write_be(output)?;
+    particle.materials_hdr.write_be(output)?;
+    particle.bones_hdr.write_be(output)?;
+    particle.force_hdr.write_be(output)?;
+    particle.timelines_hdr.write_be(output)?;
+
+    for setting in &particle.particle_settings {
+        setting.write_be(output)?;
+    }
+    for material in &particle.materials {
+        material.write_be(output)?;
+    }
+
+    let bone_size = if version < 0x79 { 48 } else { 56 };
+    for bone in &particle.bones {
+        output.write_all(&prefix(bone, bone_size)?)?;
+    }
+
+    let force_size = if version == 0x77 { 96 } else { 112 };
+    for field in &particle.forcefields {
+        output.write_all(&prefix(field, force_size)?)?;
+    }
+
+    for timeline in &particle.timelines {
+        timeline.write_be(output)?;
+    }
+    output.write_all(&particle.trailing_data)?;
+    Ok(())
+}
+
+fn prefix<T>(value: &T, length: usize) -> Result<Vec<u8>>
+where
+    T: BinWrite,
+    T::Args: Default,
+{
+    let mut cursor = Cursor::new(Vec::new());
+    value
+        .write_be(&mut cursor)
+        .map_err(|error| NuccError::InvalidChunk(format!("particle row: {error}")))?;
+    let mut bytes = cursor.into_inner();
+    if bytes.len() < length {
+        return Err(NuccError::InvalidChunk("particle row is truncated".into()));
+    }
+    bytes.truncate(length);
+    Ok(bytes)
+}
+
+fn decode_particle(input: &[u8], version: u16) -> Result<NuccChunkParticle> {
+    if !matches!(version, 0x73 | 0x74 | 0x75 | 0x77 | 0x79 | 0x7a | 0x7b) {
+        return Err(NuccError::Unsupported(format!(
+            "particle version {version:#x}"
+        )));
+    }
+    if input.len() < 40 {
+        return Err(NuccError::Truncated);
+    }
+
+    let mut counts = [0usize; 5];
+    let mut sizes = [0usize; 5];
+    for index in 0..5 {
+        let at = index * 8;
+        counts[index] = u16::from_be_bytes([input[at + 4], input[at + 5]]) as usize;
+        sizes[index] = u16::from_be_bytes([input[at + 6], input[at + 7]]) as usize;
+    }
+
+    let mut offset = 40usize;
+    for (index, base_stride) in [208usize, 32, 56, 112].into_iter().enumerate() {
+        let stride = if index == 2 && version < 0x79 {
+            48
+        } else if index == 3 && version == 0x77 {
+            96
+        } else {
+            base_stride
+        };
+        let expected = counts[index]
+            .checked_mul(stride)
+            .ok_or(NuccError::Overflow)?;
+        if sizes[index] != expected {
+            return Err(NuccError::InvalidChunk(format!(
+                "particle section {index} has size {:#x}, expected {expected:#x}",
+                sizes[index]
+            )));
+        }
+        offset = offset
+            .checked_add(sizes[index])
+            .ok_or(NuccError::Overflow)?;
+        if offset > input.len() {
+            return Err(NuccError::Truncated);
+        }
+    }
+
+    let timeline_start = offset;
+    for _ in 0..counts[4] {
+        let bytes = input.get(offset..offset + 4).ok_or(NuccError::Truncated)?;
+        let frame_count = u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as usize;
+        let available = input
+            .len()
+            .saturating_sub(offset + 4)
+            .checked_div(4)
+            .ok_or(NuccError::Overflow)?;
+        if frame_count > available {
+            return Err(NuccError::InvalidChunk(
+                "particle timeline exceeds payload".into(),
+            ));
+        }
+        let consumed = 4usize
+            .checked_add(frame_count.checked_mul(4).ok_or(NuccError::Overflow)?)
+            .ok_or(NuccError::Overflow)?;
+        offset = offset
+            .checked_add((consumed + 7) & !7)
+            .ok_or(NuccError::Overflow)?;
+        if offset > input.len() {
+            return Err(NuccError::Truncated);
+        }
+    }
+    if offset - timeline_start != sizes[4] {
+        return Err(NuccError::InvalidChunk(
+            "particle timeline size mismatch".into(),
+        ));
+    }
+
+    if version == 0x7b && offset < input.len() {
+        let bytes = input.get(offset..offset + 8).ok_or(NuccError::Truncated)?;
+        let cache_size = usize::try_from(u64::from_be_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        ]))
+        .map_err(|_| NuccError::Overflow)?;
+        if input.len() != offset + 8 + cache_size {
+            return Err(NuccError::InvalidChunk(
+                "particle cache size mismatch".into(),
+            ));
+        }
+        offset = input.len();
+    } else if offset != input.len() {
+        return Err(NuccError::InvalidChunk("particle trailing data".into()));
+    }
+
+    let s0 = 40usize;
+    let s1 = s0.checked_add(sizes[0]).ok_or(NuccError::Overflow)?;
+    let s2 = s1.checked_add(sizes[1]).ok_or(NuccError::Overflow)?;
+    let s3 = s2.checked_add(sizes[2]).ok_or(NuccError::Overflow)?;
+    let s4 = s3.checked_add(sizes[3]).ok_or(NuccError::Overflow)?;
+    let legacy_bones = version < 0x79 && counts[2] > 0;
+    let nested_force_fields = version == 0x77 && counts[3] > 0;
+
+    let normalized = if legacy_bones || nested_force_fields {
+        let capacity = input
+            .len()
+            .checked_add(counts[2].checked_mul(8).ok_or(NuccError::Overflow)?)
+            .and_then(|value| value.checked_add(counts[3].checked_mul(16)?))
+            .ok_or(NuccError::Overflow)?;
+        let mut expanded = Vec::with_capacity(capacity);
+        expanded.extend_from_slice(&input[..s2]);
+        if legacy_bones {
+            for row in input[s2..s3].as_chunks::<48>().0 {
+                expanded.extend_from_slice(row);
+                expanded.extend_from_slice(&[0u8; 8]);
+            }
+        } else {
+            expanded.extend_from_slice(&input[s2..s3]);
+        }
+        if nested_force_fields {
+            for row in input[s3..s4].as_chunks::<96>().0 {
+                expanded.extend_from_slice(row);
+                expanded.extend_from_slice(&[0u8; 16]);
+            }
+        } else {
+            expanded.extend_from_slice(&input[s3..s4]);
+        }
+        expanded.extend_from_slice(&input[s4..offset]);
+        expanded
+    } else {
+        input[..offset].to_vec()
+    };
+
+    let mut cursor = Cursor::new(normalized);
+    NuccChunkParticle::read_be_args(&mut cursor, (version,))
+        .map_err(|error| NuccError::InvalidChunk(format!("particle: {error}")))
 }
 
 #[binrw]
@@ -74,9 +290,7 @@ pub struct ParticleSettingsV79 {
     pub unk1: u8,
     pub unk2: u8,
 
-    #[br(count = 0x02)]
-    #[bw(calc = vec![0u8; 2])]
-    pub _pad0: Vec<u8>,
+    pub force_field_flags_hi: u16,
 
     pub unk_flag: u8,
     pub start_time: u8,
@@ -198,4 +412,64 @@ pub struct Timeline {
     #[br(if((frame_count * 4 + 4) % 8 != 0))]
     #[br(count = 4)]
     pub pad_to_8: Option<Vec<u8>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accepts_all_particle_versions() {
+        for version in [0x73, 0x74, 0x75, 0x77, 0x79, 0x7a, 0x7b] {
+            let particle = decode_particle(&[0u8; 40], version).unwrap();
+            assert_eq!(particle.version, version);
+            let mut output = Cursor::new(Vec::new());
+            write_particle(&particle, version, &mut output).unwrap();
+            assert_eq!(output.into_inner(), vec![0u8; 40]);
+        }
+    }
+
+    #[test]
+    fn expands_legacy_bone_rows() {
+        let mut data = vec![0u8; 40 + 48];
+        data[20..22].copy_from_slice(&1u16.to_be_bytes());
+        data[22..24].copy_from_slice(&48u16.to_be_bytes());
+
+        let particle = decode_particle(&data, 0x73).unwrap();
+        assert_eq!(particle.bones.len(), 1);
+        let mut output = Cursor::new(Vec::new());
+        write_particle(&particle, 0x73, &mut output).unwrap();
+        assert_eq!(output.into_inner(), data);
+    }
+
+    #[test]
+    fn expands_v77_force_field_rows() {
+        let mut data = vec![0u8; 40 + 96];
+        data[28..30].copy_from_slice(&1u16.to_be_bytes());
+        data[30..32].copy_from_slice(&96u16.to_be_bytes());
+
+        let particle = decode_particle(&data, 0x77).unwrap();
+        assert_eq!(particle.forcefields.len(), 1);
+        assert_eq!(particle.forcefields[0].data.len(), 0x70);
+        let mut output = Cursor::new(Vec::new());
+        write_particle(&particle, 0x77, &mut output).unwrap();
+        assert_eq!(output.into_inner(), data);
+    }
+
+    #[test]
+    fn accepts_v7b_geometry_cache() {
+        let mut data = vec![0u8; 40 + 8 + 4];
+        data[40..48].copy_from_slice(&4u64.to_be_bytes());
+
+        let particle = decode_particle(&data, 0x7b).unwrap();
+        assert_eq!(particle.version, 0x7b);
+        let mut output = Cursor::new(Vec::new());
+        write_particle(&particle, 0x7b, &mut output).unwrap();
+        assert_eq!(output.into_inner(), data);
+    }
+
+    #[test]
+    fn rejects_unknown_versions() {
+        assert!(decode_particle(&[0u8; 40], 0x7c).is_err());
+    }
 }
