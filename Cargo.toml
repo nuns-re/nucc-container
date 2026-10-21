@@ -26,7 +26,7 @@ indexmap = "2"
 nu = { git = "https://github.com/nuns-re/nu-library.git", rev = "b9606d7", package = "nu" }
 nucc-core = { path = "crates/nucc-core" }
 nucc-xfbin = { path = "crates/nucc-xfbin" }
-nucc-chunk = { path = "crates/nucc-chunk" }
+nucc-chunk = { path = "crates/nucc-chunk", default-features = false }
 nucc-nus3 = { path = "crates/nucc-nus3" }
 nucc-acb = { path = "crates/nucc-acb" }
 nucc-awb = { path = "crates/nucc-awb" }
