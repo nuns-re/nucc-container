@@ -7,6 +7,7 @@ nucc-core       shared chunk types and index records
 nucc-xfbin      XFBIN header, index, chunk table, read/write
 nucc-nus3       NUS3BANK reader
 nucc-acb        ACB / CRI UTF reader
+nucc-awb        AWB / AFS2 wave bank reader
 nucc-chunk      typed nuccChunk* payloads
 nucc-container  high-level NuccXfbinDocument
 nucc-cli        inspect and list XFBIN contents
@@ -34,6 +35,8 @@ for chunk in &document.chunks {
 nucc inspect file.xfbin
 nucc chunks file.xfbin
 nucc acb file.xfbin
+nucc acb BGM.acb
+nucc awb BGM.awb
 ```
 
 ## Scope
@@ -41,9 +44,9 @@ nucc acb file.xfbin
 This repository owns the XFBIN container and NUCC chunk envelope. It does not
 contain game assets. Leaf formats such as NUD, NUT, NSH, and NFH are read by
 the separate `nu` library. `nucc-nus3` handles the NUS3BANK payload and
-`nucc-acb` handles the ACB payload carried by `nuccChunkNub`. ACB exposes
-embedded `AwbFile` data and stream AWB metadata; external `.awb` parsing is
-kept separate.
+`nucc-acb` handles the ACB payload carried by `nuccChunkNub`. `nucc-awb`
+handles AFS2 wave banks, including embedded `AwbFile` data and standalone
+`.awb` files.
 
 ## License
 

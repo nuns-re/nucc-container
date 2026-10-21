@@ -189,6 +189,11 @@ impl Acb {
             .filter(|data| !data.is_empty())
     }
 
+    #[cfg(feature = "awb")]
+    pub fn awb(&self) -> Result<Option<nucc_awb::Awb>> {
+        self.awb_data().map(nucc_awb::Awb::parse).transpose()
+    }
+
     pub fn awb_offset(&self) -> Option<usize> {
         self.awb_offset
     }

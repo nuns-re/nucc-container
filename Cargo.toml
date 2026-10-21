@@ -6,6 +6,7 @@ members = [
     "crates/nucc-chunk",
     "crates/nucc-nus3",
     "crates/nucc-acb",
+    "crates/nucc-awb",
     "crates/nucc-container",
     "crates/nucc-cli",
 ]
@@ -28,5 +29,6 @@ nucc-xfbin = { path = "crates/nucc-xfbin" }
 nucc-chunk = { path = "crates/nucc-chunk" }
 nucc-nus3 = { path = "crates/nucc-nus3" }
 nucc-acb = { path = "crates/nucc-acb" }
+nucc-awb = { path = "crates/nucc-awb" }
 nucc-container = { path = "crates/nucc-container" }
 thiserror = "2"

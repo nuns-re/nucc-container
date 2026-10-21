@@ -19,3 +19,6 @@ pub use nucc_acb::{
     Acb, AcbBlock, AcbBlockSequence, AcbCue, AcbCueName, AcbHeader, AcbReference, AcbSequence,
     AcbSynth, AcbTrack, AcbTrackEvent, AcbWaveform, AcbWaveformExtension, UtfTable, UtfValue,
 };
+
+#[cfg(feature = "awb")]
+pub use nucc_awb::{Awb, AwbCodec, AwbEntry, AwbHeader};

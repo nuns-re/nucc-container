@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use nucc_container::{Acb, NuccChunkNub, NuccXfbinDocument};
+use nucc_container::{Acb, Awb, NuccChunkNub, NuccXfbinDocument};
 
 #[derive(Debug, Parser)]
 #[command(name = "nucc", version, about = "Inspect NUCC XFBIN containers")]
@@ -29,6 +29,11 @@ enum Command {
         #[arg(value_name = "XFBIN_OR_ACB")]
         path: PathBuf,
     },
+    /// List entries in an AWB/audio wave bank.
+    Awb {
+        #[arg(value_name = "AWB")]
+        path: PathBuf,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -37,6 +42,7 @@ fn main() -> anyhow::Result<()> {
         Command::Inspect { path } => inspect(&path),
         Command::Chunks { path } => chunks(&path),
         Command::Acb { path } => acb(&path),
+        Command::Awb { path } => awb(&path),
     }
 }
 
@@ -79,7 +85,7 @@ fn acb(path: &PathBuf) -> anyhow::Result<()> {
     if bytes.starts_with(b"@UTF") {
         let acb = Acb::parse(&bytes)
             .with_context(|| format!("failed to parse ACB {}", path.display()))?;
-        print_acb(&acb);
+        print_acb(&acb)?;
         return Ok(());
     }
 
@@ -95,7 +101,7 @@ fn acb(path: &PathBuf) -> anyhow::Result<()> {
             .acb()
             .with_context(|| format!("failed to parse ACB chunk {}", entry.chunk_name()))?;
         found = true;
-        print_acb(&acb);
+        print_acb(&acb)?;
     }
 
     if !found {
@@ -104,7 +110,31 @@ fn acb(path: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn print_acb(acb: &Acb) {
+fn awb(path: &PathBuf) -> anyhow::Result<()> {
+    let bytes = fs::read(path).with_context(|| format!("failed to read {}", path.display()))?;
+    let awb = Awb::parse(&bytes).with_context(|| format!("failed to parse {}", path.display()))?;
+    print_awb(&awb);
+    Ok(())
+}
+
+fn print_awb(awb: &Awb) {
+    println!(
+        "entries={} version={} subkey={}",
+        awb.header.entry_count, awb.header.version, awb.header.subkey
+    );
+    for entry in &awb.entries {
+        println!(
+            "  {:04}  id={:<5}  {:<7}  {:#08x} + {:#x}",
+            entry.index,
+            entry.id,
+            entry.codec.extension(),
+            entry.offset,
+            entry.size
+        );
+    }
+}
+
+fn print_acb(acb: &Acb) -> anyhow::Result<()> {
     println!(
         "{}  cues={}  waveforms={}  awb={}",
         acb.header.name, acb.header.cue_count, acb.header.waveform_count, acb.header.awb_size
@@ -127,4 +157,9 @@ fn print_acb(acb: &Acb) {
             waves.join(", ")
         );
     }
+
+    if let Some(awb) = acb.awb()? {
+        print_awb(&awb);
+    }
+    Ok(())
 }

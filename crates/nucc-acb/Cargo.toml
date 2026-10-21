@@ -5,5 +5,10 @@ edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[features]
+default = ["awb"]
+awb = ["dep:nucc-awb"]
+
 [dependencies]
+nucc-awb = { workspace = true, optional = true }
 nucc-core.workspace = true

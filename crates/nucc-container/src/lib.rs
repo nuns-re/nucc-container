@@ -13,3 +13,6 @@ pub use nucc_chunk::{
     Acb, AcbBlock, AcbBlockSequence, AcbCue, AcbCueName, AcbHeader, AcbReference, AcbSequence,
     AcbSynth, AcbTrack, AcbTrackEvent, AcbWaveform, AcbWaveformExtension, UtfTable, UtfValue,
 };
+
+#[cfg(feature = "awb")]
+pub use nucc_chunk::{Awb, AwbCodec, AwbEntry, AwbHeader};
