@@ -6,6 +6,7 @@ Rust middleware for NUCC XFBIN containers and typed chunks.
 nucc-core       shared chunk types and index records
 nucc-xfbin      XFBIN header, index, chunk table, read/write
 nucc-nus3       NUS3BANK reader
+nucc-acb        ACB / CRI UTF reader
 nucc-chunk      typed nuccChunk* payloads
 nucc-container  high-level NuccXfbinDocument
 nucc-cli        inspect and list XFBIN contents
@@ -32,14 +33,17 @@ for chunk in &document.chunks {
 ```text
 nucc inspect file.xfbin
 nucc chunks file.xfbin
+nucc acb file.xfbin
 ```
 
 ## Scope
 
 This repository owns the XFBIN container and NUCC chunk envelope. It does not
 contain game assets. Leaf formats such as NUD, NUT, NSH, and NFH are read by
-the separate `nu` library. `nucc-nus3` handles the NUS3BANK payload carried by
-`nuccChunkNub`.
+the separate `nu` library. `nucc-nus3` handles the NUS3BANK payload and
+`nucc-acb` handles the ACB payload carried by `nuccChunkNub`. ACB exposes
+embedded `AwbFile` data and stream AWB metadata; external `.awb` parsing is
+kept separate.
 
 ## License
 

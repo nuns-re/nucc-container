@@ -244,12 +244,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nucc-acb"
+version = "0.1.0"
+dependencies = [
+ "nucc-core",
+]
+
+[[package]]
 name = "nucc-chunk"
 version = "0.1.0"
 dependencies = [
  "binrw",
  "downcast-rs",
  "nu",
+ "nucc-acb",
  "nucc-core",
  "nucc-nus3",
  "thiserror",

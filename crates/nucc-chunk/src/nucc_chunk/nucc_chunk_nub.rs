@@ -39,6 +39,13 @@ impl NuccChunkNub {
     }
 }
 
+#[cfg(feature = "acb")]
+impl NuccChunkNub {
+    pub fn acb(&self) -> nucc_core::Result<nucc_acb::Acb> {
+        nucc_acb::Acb::parse(&self.data)
+    }
+}
+
 impl NuccChunkNub {
     pub fn payload(&self) -> &[u8] {
         &self.data

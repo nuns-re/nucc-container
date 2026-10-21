@@ -13,3 +13,9 @@ pub use nucc_chunk::{
 
 #[cfg(feature = "nus3")]
 pub use nucc_nus3::{Nus3Bank, Nus3Chunk, Nus3Codec, Nus3Tone};
+
+#[cfg(feature = "acb")]
+pub use nucc_acb::{
+    Acb, AcbBlock, AcbBlockSequence, AcbCue, AcbCueName, AcbHeader, AcbReference, AcbSequence,
+    AcbSynth, AcbTrack, AcbTrackEvent, AcbWaveform, AcbWaveformExtension, UtfTable, UtfValue,
+};
