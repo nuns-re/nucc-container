@@ -11,8 +11,11 @@ pub mod nucc_chunk_dynamics;
 pub mod nucc_chunk_layerset;
 pub mod nucc_chunk_lightdirc;
 pub mod nucc_chunk_lightpoint;
+pub mod nucc_chunk_lightset;
 pub mod nucc_chunk_material;
 pub mod nucc_chunk_model;
+pub mod nucc_chunk_modelhit;
+pub mod nucc_chunk_modelvertex;
 pub mod nucc_chunk_morphmodel;
 pub mod nucc_chunk_nub;
 pub mod nucc_chunk_null;
@@ -43,8 +46,13 @@ pub use nucc_chunk_dynamics::{DynamicsCollisionSphere, DynamicsSpringGroup, Nucc
 pub use nucc_chunk_layerset::{NuccChunkLayerSet, NuccLayerSetLayer, NuccLayerSetSelector};
 pub use nucc_chunk_lightdirc::NuccChunkLightDirc;
 pub use nucc_chunk_lightpoint::NuccChunkLightPoint;
+pub use nucc_chunk_lightset::{
+    NuccChunkLightSet, NuccLightSetCategory, NuccLightSetCategoryGroup, NuccLightSetMode,
+};
 pub use nucc_chunk_material::{MaterialTextureGroup, NuccChunkMaterial};
 pub use nucc_chunk_model::NuccChunkModel;
+pub use nucc_chunk_modelhit::{NuccChunkModelHit, NuccModelHitObject, NuccModelHitTriangle};
+pub use nucc_chunk_modelvertex::NuccChunkModelVertex;
 pub use nucc_chunk_morphmodel::{NuccChunkMorphModel, NuccMorphModelTarget};
 pub use nucc_chunk_nub::NuccChunkNub;
 pub use nucc_chunk_null::NuccChunkNull;
@@ -127,8 +135,11 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkTrail => NuccChunkTrail::read_boxed(&data, version),
             NuccChunkType::NuccChunkLightDirc => NuccChunkLightDirc::read_boxed(&data, version),
             NuccChunkType::NuccChunkLightPoint => NuccChunkLightPoint::read_boxed(&data, version),
+            NuccChunkType::NuccChunkLightSet => NuccChunkLightSet::read_boxed(&data, version),
             NuccChunkType::NuccChunkLayerSet => NuccChunkLayerSet::read_boxed(&data, version),
             NuccChunkType::NuccChunkAmbient => NuccChunkAmbient::read_boxed(&data, version),
+            NuccChunkType::NuccChunkModelHit => NuccChunkModelHit::read_boxed(&data, version),
+            NuccChunkType::NuccChunkModelVertex => NuccChunkModelVertex::read_boxed(&data, version),
             NuccChunkType::NuccChunkMorphModel => NuccChunkMorphModel::read_boxed(&data, version),
             NuccChunkType::NuccChunkNub => NuccChunkNub::read_boxed(&data, version),
             _ => Ok((
@@ -145,7 +156,7 @@ impl NuccChunkTypeExt for NuccChunkType {
     fn write_data(boxed: Box<dyn NuccChunk>, version: u16) -> NuccChunkWriteResult {
         let mut output = Cursor::new(Vec::new());
         match boxed.chunk_type() {
-            NuccChunkType::NuccChunkNull | NuccChunkType::NuccChunkIndex => {
+            NuccChunkType::NuccChunkNull | NuccChunkType::NuccChunkTable => {
                 return Ok(output.into_inner());
             }
             NuccChunkType::NuccChunkPage => {
@@ -197,11 +208,20 @@ impl NuccChunkTypeExt for NuccChunkType {
             NuccChunkType::NuccChunkLightPoint => {
                 NuccChunkLightPoint::write_boxed(boxed, &mut output, version)?
             }
+            NuccChunkType::NuccChunkLightSet => {
+                NuccChunkLightSet::write_boxed(boxed, &mut output, version)?
+            }
             NuccChunkType::NuccChunkLayerSet => {
                 NuccChunkLayerSet::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkAmbient => {
                 NuccChunkAmbient::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkModelHit => {
+                NuccChunkModelHit::write_boxed(boxed, &mut output, version)?
+            }
+            NuccChunkType::NuccChunkModelVertex => {
+                NuccChunkModelVertex::write_boxed(boxed, &mut output, version)?
             }
             NuccChunkType::NuccChunkMorphModel => {
                 NuccChunkMorphModel::write_boxed(boxed, &mut output, version)?

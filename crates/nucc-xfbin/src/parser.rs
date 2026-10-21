@@ -22,17 +22,17 @@ impl NuccXfbinData {
     pub fn entries(&self) -> Result<Vec<NuccXfbinChunkEntry<'_>>> {
         let index = &self.index;
         let mut entries = Vec::with_capacity(self.chunks.len());
+        let mut base = 0usize;
 
         for chunk in &self.chunks {
-            let map = index
-                .chunk_maps
-                .get(chunk.chunk_map_index as usize)
-                .ok_or_else(|| {
-                    NuccError::InvalidIndex(format!(
-                        "chunk map {} is out of range",
-                        chunk.chunk_map_index
-                    ))
-                })?;
+            let local = chunk.chunk_map_index as usize;
+            let global = base.checked_add(local).ok_or(NuccError::Overflow)?;
+            let map_index = *index.chunk_map_indices.get(global).ok_or_else(|| {
+                NuccError::InvalidIndex(format!("page map index {global} is out of range"))
+            })? as usize;
+            let map = index.chunk_maps.get(map_index).ok_or_else(|| {
+                NuccError::InvalidIndex(format!("chunk map {map_index} is out of range"))
+            })?;
 
             let chunk_type_name = index
                 .chunk_types
@@ -50,7 +50,7 @@ impl NuccXfbinData {
             let type_name = chunk_type_name.to_string();
             let chunk_type =
                 NuccChunkType::from_str(&type_name).unwrap_or(NuccChunkType::NuccChunkUnknown);
-
+            let is_page = type_name == NuccChunkType::NuccChunkPage.as_str();
             entries.push(NuccXfbinChunkEntry {
                 index: NuccChunkInternalIndex {
                     chunk_name: chunk_name.to_string(),
@@ -63,6 +63,23 @@ impl NuccXfbinData {
                 version: chunk.version,
                 data: &chunk.data,
             });
+
+            if is_page {
+                let page_count = chunk
+                    .data
+                    .get(..4)
+                    .and_then(|bytes| bytes.try_into().ok())
+                    .map(u32::from_be_bytes)
+                    .ok_or_else(|| NuccError::InvalidChunk("truncated page header".into()))?;
+                if page_count == 0 || local >= page_count as usize {
+                    return Err(NuccError::InvalidIndex(
+                        "page chunk table exceeds page length".into(),
+                    ));
+                }
+                base = base
+                    .checked_add(page_count as usize)
+                    .ok_or(NuccError::Overflow)?;
+            }
         }
 
         Ok(entries)

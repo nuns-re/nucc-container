@@ -7,10 +7,12 @@ pub use nucc_chunk::{
     NuccBillboardAnmData, NuccBillboardReference, NuccChunk, NuccChunkAmbient, NuccChunkAnm,
     NuccChunkAnmStrm, NuccChunkAnmStrmFrame, NuccChunkBillboard, NuccChunkBinary, NuccChunkCamera,
     NuccChunkClump, NuccChunkCoord, NuccChunkDynamics, NuccChunkLayerSet, NuccChunkLightDirc,
-    NuccChunkLightPoint, NuccChunkMaterial, NuccChunkModel, NuccChunkMorphModel, NuccChunkNub,
-    NuccChunkNull, NuccChunkPage, NuccChunkParticle, NuccChunkReference, NuccChunkTexture,
-    NuccChunkTrail, NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown, NuccLayerSetLayer,
-    NuccLayerSetSelector, NuccMorphModelTarget,
+    NuccChunkLightPoint, NuccChunkLightSet, NuccChunkMaterial, NuccChunkModel, NuccChunkModelHit,
+    NuccChunkModelVertex, NuccChunkMorphModel, NuccChunkNub, NuccChunkNull, NuccChunkPage,
+    NuccChunkParticle, NuccChunkReference, NuccChunkTexture, NuccChunkTrail, NuccChunkType,
+    NuccChunkTypeExt, NuccChunkUnknown, NuccLayerSetLayer, NuccLayerSetSelector,
+    NuccLightSetCategory, NuccLightSetCategoryGroup, NuccLightSetMode, NuccModelHitObject,
+    NuccModelHitTriangle, NuccMorphModelTarget,
 };
 
 #[cfg(feature = "nus3")]

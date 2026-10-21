@@ -5,9 +5,11 @@ mod document;
 pub use document::{NuccChunkEntry, NuccXfbinDocument, NuccXfbinPage};
 pub use nucc_chunk::{
     NuccBillboardAnmData, NuccBillboardReference, NuccChunkAmbient, NuccChunkBillboard,
-    NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint, NuccChunkModel,
-    NuccChunkMorphModel, NuccChunkNub, NuccChunkReference, NuccChunkTexture, NuccChunkTrail,
-    NuccLayerSetLayer, NuccLayerSetSelector, NuccMorphModelTarget,
+    NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint, NuccChunkLightSet, NuccChunkModel,
+    NuccChunkModelHit, NuccChunkModelVertex, NuccChunkMorphModel, NuccChunkNub, NuccChunkReference,
+    NuccChunkTexture, NuccChunkTrail, NuccLayerSetLayer, NuccLayerSetSelector,
+    NuccLightSetCategory, NuccLightSetCategoryGroup, NuccLightSetMode, NuccModelHitObject,
+    NuccModelHitTriangle, NuccMorphModelTarget,
 };
 
 #[cfg(feature = "nus3")]

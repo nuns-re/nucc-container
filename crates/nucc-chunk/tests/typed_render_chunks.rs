@@ -1,6 +1,7 @@
 use nucc_chunk::{
     NuccChunkAmbient, NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint,
-    NuccChunkMorphModel, NuccChunkType, NuccChunkTypeExt,
+    NuccChunkLightSet, NuccChunkModelHit, NuccChunkModelVertex, NuccChunkMorphModel, NuccChunkType,
+    NuccChunkTypeExt,
 };
 
 fn f32be(value: f32) -> [u8; 4] {
@@ -106,4 +107,113 @@ fn morph_model_round_trip() {
     assert_eq!(morph.targets[0].vertex_target_index, 11);
     assert_eq!(morph.targets[0].weight, 0.5);
     assert_eq!(NuccChunkType::write_data(morph, 0x7a).unwrap(), data);
+}
+
+#[test]
+fn light_set_round_trip() {
+    let mut data = vec![1, 1, 1, 0, 0, 6, 0, 0];
+    data.extend_from_slice(&[0, 0, 0, 0]);
+    data.extend_from_slice(&[0, 0, 0, 2, 0, 0, 0, 5]);
+    data.extend_from_slice(&[0, 0, 0, 4]);
+    data.extend_from_slice(b"a\0b\0c\0");
+
+    let (_, boxed) = NuccChunkType::read_data(data.clone(), "nuccChunkLightSet", 0x7a).unwrap();
+    let light_set = boxed.downcast::<NuccChunkLightSet>().unwrap();
+    assert_eq!(light_set.categories.len(), 1);
+    assert_eq!(light_set.category_groups.len(), 1);
+    assert_eq!(light_set.category_groups[0].category, 5);
+    assert_eq!(light_set.modes.len(), 1);
+    assert_eq!(light_set.string_at(2), Some("b"));
+    assert_eq!(NuccChunkType::write_data(light_set, 0x7a).unwrap(), data);
+}
+
+#[test]
+fn model_vertex_round_trip() {
+    let mut data = 8u32.to_be_bytes().to_vec();
+    data.extend_from_slice(b"data5678");
+
+    let (_, boxed) = NuccChunkType::read_data(data.clone(), "nuccChunkModelVertex", 0x7a).unwrap();
+    let model = boxed.downcast::<NuccChunkModelVertex>().unwrap();
+    assert_eq!(model.data_size, 8);
+    assert_eq!(model.data, b"data5678");
+    assert_eq!(NuccChunkType::write_data(model, 0x7a).unwrap(), data);
+}
+
+fn push_model_hit_triangle(data: &mut Vec<u8>, v: [[f32; 3]; 3]) {
+    for point in v {
+        for coordinate in point {
+            data.extend_from_slice(&f32be(coordinate));
+        }
+    }
+}
+
+#[test]
+fn model_hit_v121_round_trip() {
+    let mut data = Vec::new();
+    data.extend_from_slice(&1u32.to_be_bytes());
+    data.extend_from_slice(&1u32.to_be_bytes());
+    data.extend_from_slice(&1u32.to_be_bytes());
+    data.extend_from_slice(&0x3067u32.to_be_bytes());
+    push_model_hit_triangle(
+        &mut data,
+        [[0.0, 0.0, 0.0], [100.0, 0.0, 0.0], [0.0, 100.0, 0.0]],
+    );
+
+    let (_, boxed) = NuccChunkType::read_data(data.clone(), "nuccChunkModelHit", 0x79).unwrap();
+    let hit = boxed.downcast::<NuccChunkModelHit>().unwrap();
+    assert_eq!(hit.objects.len(), 1);
+    assert_eq!(hit.objects[0].poly_count, 1);
+    assert_eq!(hit.objects[0].attr_a, 0x3067);
+    assert_eq!(hit.triangles.len(), 1);
+    assert_eq!(hit.triangles[0].v[1], [100.0, 0.0, 0.0]);
+    assert_eq!(NuccChunkType::write_data(hit, 0x79).unwrap(), data);
+}
+
+#[test]
+fn model_hit_v122_round_trip() {
+    let mut data = Vec::new();
+    data.extend_from_slice(&1u32.to_be_bytes());
+    data.extend_from_slice(&1u32.to_be_bytes());
+    data.extend_from_slice(&1u32.to_be_bytes());
+    data.extend_from_slice(&0x606064u32.to_be_bytes());
+    data.extend_from_slice(&0x12345678u32.to_be_bytes());
+    data.extend_from_slice(&0x9abcdef0u32.to_be_bytes());
+    push_model_hit_triangle(
+        &mut data,
+        [[0.0, 0.0, 0.0], [100.0, 0.0, 0.0], [0.0, 100.0, 0.0]],
+    );
+
+    let (_, boxed) = NuccChunkType::read_data(data.clone(), "nuccChunkModelHit", 0x7a).unwrap();
+    let hit = boxed.downcast::<NuccChunkModelHit>().unwrap();
+    assert_eq!(hit.objects[0].attr_b, 0x12345678);
+    assert_eq!(hit.objects[0].unused_pad, 0x9abcdef0);
+    assert_eq!(NuccChunkType::write_data(hit, 0x7a).unwrap(), data);
+}
+
+#[test]
+fn new_chunk_reference_stubs_are_typed() {
+    let data = vec![0, 0, 0, 4, 0, 0, 0, 0];
+    for (name, chunk) in [
+        (
+            "nuccChunkLightSet",
+            NuccChunkType::read_data(data.clone(), "nuccChunkLightSet", 0x7a)
+                .unwrap()
+                .1,
+        ),
+        (
+            "nuccChunkModelHit",
+            NuccChunkType::read_data(data.clone(), "nuccChunkModelHit", 0x7a)
+                .unwrap()
+                .1,
+        ),
+        (
+            "nuccChunkModelVertex",
+            NuccChunkType::read_data(data.clone(), "nuccChunkModelVertex", 0x7a)
+                .unwrap()
+                .1,
+        ),
+    ] {
+        assert!(!chunk.is_opaque(), "{name}");
+        assert_eq!(chunk.chunk_type().as_str(), name);
+    }
 }
