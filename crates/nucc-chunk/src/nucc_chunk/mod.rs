@@ -33,7 +33,7 @@ pub use nucc_chunk_ambient::NuccChunkAmbient;
 pub use nucc_chunk_anm::NuccChunkAnm;
 pub use nucc_chunk_anmstrm::NuccChunkAnmStrm;
 pub use nucc_chunk_anmstrmframe::NuccChunkAnmStrmFrame;
-pub use nucc_chunk_billboard::{NuccBillboardAnmData, NuccChunkBillboard};
+pub use nucc_chunk_billboard::{NuccBillboardAnmData, NuccBillboardReference, NuccChunkBillboard};
 pub use nucc_chunk_binary::NuccChunkBinary;
 pub use nucc_chunk_camera::NuccChunkCamera;
 pub use nucc_chunk_clump::NuccChunkClump;

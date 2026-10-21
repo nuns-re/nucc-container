@@ -6,7 +6,7 @@ use binrw::{
 };
 use nucc_core::{NuccError, Result};
 
-use super::{NuccChunk, NuccChunkType};
+use super::{NuccChunk, NuccChunkModel, NuccChunkType};
 
 #[derive(Debug, Clone, Default)]
 pub struct NuccChunkBillboard {
@@ -17,6 +17,15 @@ pub struct NuccChunkBillboard {
     pub reserved: u16,
     pub frame_milliseconds: u32,
     pub anm_data: NuccBillboardAnmData,
+    pub reference: Option<NuccBillboardReference>,
+    pub model_chunk: Option<Box<NuccChunkModel>>,
+    pub raw_data: Option<Vec<u8>>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct NuccBillboardReference {
+    pub chunkmap_index: u32,
+    pub reserved: u32,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -79,9 +88,41 @@ impl NuccChunk for NuccChunkBillboard {
     }
 
     fn read_boxed(input: &[u8], version: u16) -> super::NuccChunkReadResult {
-        let billboard = decode_billboard(input, version)
-            .map_err(|error| Box::new(error) as Box<dyn std::error::Error>)?;
-        Ok((input.to_vec(), Box::new(billboard)))
+        if input.len() == 8 {
+            let reference = NuccBillboardReference {
+                chunkmap_index: read_u32be(input, 0)?,
+                reserved: read_u32be(input, 4)?,
+            };
+            let billboard = NuccChunkBillboard {
+                version,
+                reference: Some(reference),
+                ..Default::default()
+            };
+            return Ok((input.to_vec(), Box::new(billboard)));
+        }
+
+        if let Ok((_, chunk)) = NuccChunkModel::read_boxed(input, version) {
+            if let Ok(model) = chunk.downcast::<NuccChunkModel>() {
+                let billboard = NuccChunkBillboard {
+                    version,
+                    model_chunk: Some(model),
+                    ..Default::default()
+                };
+                return Ok((input.to_vec(), Box::new(billboard)));
+            }
+        }
+
+        match decode_billboard(input, version) {
+            Ok(billboard) => Ok((input.to_vec(), Box::new(billboard))),
+            Err(_) => {
+                let billboard = NuccChunkBillboard {
+                    version,
+                    raw_data: Some(input.to_vec()),
+                    ..Default::default()
+                };
+                Ok((input.to_vec(), Box::new(billboard)))
+            }
+        }
     }
 
     fn write_boxed(
@@ -93,8 +134,25 @@ impl NuccChunk for NuccChunkBillboard {
             .downcast::<Self>()
             .map(|chunk| *chunk)
             .map_err(|_| "chunk type mismatch")?;
+        if let Some(reference) = billboard.reference {
+            output.write_all(&reference.chunkmap_index.to_be_bytes())?;
+            output.write_all(&reference.reserved.to_be_bytes())?;
+            return Ok(());
+        }
+        if let Some(raw) = &billboard.raw_data {
+            output.write_all(raw)?;
+            return Ok(());
+        }
+        if let Some(model) = &billboard.model_chunk {
+            NuccChunkModel::write_boxed(Box::new((**model).clone()), output, version)?;
+            return Ok(());
+        }
         output.write_all(&encode_billboard(&billboard, version)?)?;
         Ok(())
+    }
+
+    fn is_opaque(&self) -> bool {
+        self.raw_data.is_some()
     }
 }
 
@@ -148,6 +206,9 @@ fn decode_billboard(input: &[u8], version: u16) -> Result<NuccChunkBillboard> {
         reserved,
         frame_milliseconds,
         anm_data,
+        reference: None,
+        model_chunk: None,
+        raw_data: None,
     })
 }
 
@@ -435,6 +496,22 @@ mod tests {
         assert_eq!(billboard.anm_data.rot, vec![0.5]);
         assert!(billboard.anm_data.scale.is_empty());
         assert_eq!(encode_billboard(&billboard, 0x79).unwrap(), data);
+    }
+
+    #[test]
+    fn parses_reference_stub() {
+        let (_, chunk) = NuccChunkBillboard::read_boxed(&[0, 0, 0, 12, 0, 0, 0, 0], 0x79).unwrap();
+        let billboard = chunk
+            .downcast_ref::<NuccChunkBillboard>()
+            .expect("billboard");
+        assert_eq!(
+            billboard.reference,
+            Some(NuccBillboardReference {
+                chunkmap_index: 12,
+                reserved: 0
+            })
+        );
+        assert!(!billboard.is_opaque());
     }
 
     fn minimal_billboard() -> Vec<u8> {

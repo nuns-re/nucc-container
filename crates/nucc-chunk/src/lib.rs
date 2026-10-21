@@ -4,12 +4,12 @@
 pub mod nucc_chunk;
 
 pub use nucc_chunk::{
-    NuccBillboardAnmData, NuccChunk, NuccChunkAmbient, NuccChunkAnm, NuccChunkAnmStrm,
-    NuccChunkAnmStrmFrame, NuccChunkBillboard, NuccChunkBinary, NuccChunkCamera, NuccChunkClump,
-    NuccChunkCoord, NuccChunkDynamics, NuccChunkLayerSet, NuccChunkLightDirc, NuccChunkLightPoint,
-    NuccChunkMaterial, NuccChunkModel, NuccChunkMorphModel, NuccChunkNub, NuccChunkNull,
-    NuccChunkPage, NuccChunkParticle, NuccChunkTexture, NuccChunkTrail, NuccChunkType,
-    NuccChunkTypeExt, NuccChunkUnknown,
+    NuccBillboardAnmData, NuccBillboardReference, NuccChunk, NuccChunkAmbient, NuccChunkAnm,
+    NuccChunkAnmStrm, NuccChunkAnmStrmFrame, NuccChunkBillboard, NuccChunkBinary, NuccChunkCamera,
+    NuccChunkClump, NuccChunkCoord, NuccChunkDynamics, NuccChunkLayerSet, NuccChunkLightDirc,
+    NuccChunkLightPoint, NuccChunkMaterial, NuccChunkModel, NuccChunkMorphModel, NuccChunkNub,
+    NuccChunkNull, NuccChunkPage, NuccChunkParticle, NuccChunkTexture, NuccChunkTrail,
+    NuccChunkType, NuccChunkTypeExt, NuccChunkUnknown,
 };
 
 #[cfg(feature = "nus3")]
