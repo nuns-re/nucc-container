@@ -18,5 +18,5 @@ awb = ["nucc-chunk/awb"]
 indexmap.workspace = true
 nucc-core.workspace = true
 nucc-xfbin.workspace = true
-nucc-chunk.workspace = true
+nucc-chunk = { workspace = true, default-features = false }
 thiserror.workspace = true
